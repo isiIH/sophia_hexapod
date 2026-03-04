@@ -1,4 +1,4 @@
-# Sophia Spider - Hexapod Robot #
+# Sophia Hexapod Robot #
 
 ## Installation & Build ##
 
