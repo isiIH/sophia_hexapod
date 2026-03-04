@@ -1,0 +1,53 @@
+controller_manager:
+  ros__parameters:
+    update_rate: 100  # Hz
+
+    leg_controller:
+      type: joint_trajectory_controller/JointTrajectoryController
+      
+    joint_state_broadcaster:
+      type: joint_state_broadcaster/JointStateBroadcaster
+
+leg_controller:
+  ros__parameters:
+    joints:
+      - rf_coxa_joint
+      - rf_coxa_link_to_rf_femur_link
+      - rf_femur_link_to_rf_tibia_link
+      - rm_coxa_joint
+      - rm_coxa_link_to_rm_femur_link
+      - rm_femur_link_to_rm_tibia_link
+      - rb_coxa_joint
+      - rb_coxa_link_to_rb_femur_link
+      - rb_femur_link_to_rb_tibia_link
+      - lf_coxa_joint
+      - lf_coxa_link_to_lf_femur_link
+      - lf_femur_link_to_lf_tibia_link
+      - lm_coxa_joint
+      - lm_coxa_link_to_lm_femur_link
+      - lm_femur_link_to_lm_tibia_link
+      - lb_coxa_joint
+      - lb_coxa_link_to_lb_femur_link
+      - lb_femur_link_to_lb_tibia_link
+
+    # The controller will expect position commands as input for each of these joints.
+    command_interfaces:
+      - position
+
+    # Tells the controller that it should expect to receive position data as the state
+    # feedback from the hardware interface.
+    state_interfaces:
+      - position
+
+    # If true, When set to true, the controller will not use any feedback from the system
+    # (e.g., joint positions, velocities, efforts) to compute the control commands.
+    open_loop_control: false
+
+    # When set to true, it allows the controller to integrate the trajectory goals it receives.
+    # This means that if the goal trajectory only specifies positions, the controller will
+    # numerically integrate the positions to compute the velocities and accelerations required
+    # to follow the trajectory.
+    allow_integration_in_goal_trajectories: true
+
+    # Allow non-zero velocity at the end of the trajectory
+    allow_nonzero_velocity_at_trajectory_end: true

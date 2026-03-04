@@ -1,0 +1,155 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:property name="joint_effort" value="3.0"/>  <!-- max torque -->
+    <xacro:property name="joint_velocity" value="2.792527"/>
+    <xacro:property name="joint_damping" value="0.1"/>
+    <xacro:property name="joint_friction" value="0.01"/>
+
+    <xacro:property name="coxa_link_mass" value="0.05"/>
+    <xacro:property name="coxa_link_width" value="0.04"/>
+    <xacro:property name="coxa_link_height" value="0.04"/>
+    <xacro:property name="coxa_link_depth" value="0.04"/>
+
+    <xacro:property name="femur_link_mass" value="0.10"/>
+    <xacro:property name="femur_link_width" value="0.10"/>
+    <xacro:property name="femur_link_height" value="0.03"/>
+    <xacro:property name="femur_link_depth" value="0.03"/>
+
+    <xacro:property name="tibia_link_mass" value="0.08"/>
+    <xacro:property name="tibia_link_width" value="0.15"/>
+    <xacro:property name="tibia_link_height" value="0.02"/>
+    <xacro:property name="tibia_link_depth" value="0.02"/>
+
+    <xacro:macro name="link_inertial" params="m w h d">
+        <inertial>
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <mass value="${m}"/>
+            <inertia ixx="${(m/12) * (h*h + d*d)}" ixy="0.0" ixz="0.0"
+                    iyy="${(m/12) * (w*w + d*d)}" iyz="0.0"
+                    izz="${(m/12) * (w*w + h*h)}"/>
+        </inertial>
+    </xacro:macro>
+
+  <xacro:macro name="material_visual" params="ref_link ambient diffuse specular">
+    <gazebo reference="${ref_link}">
+      <visual>
+        <material>
+          <ambient>${ambient}</ambient>
+          <diffuse>${diffuse}</diffuse>
+          <specular>${specular}</specular>
+        </material>
+      </visual>
+    </gazebo>
+  </xacro:macro>
+
+  <xacro:macro name="leg" params="prefix parent *origin">
+
+    <link name="${prefix}coxa_link">
+      <xacro:link_inertial m="${coxa_link_mass}" w="${coxa_link_width}" h="${coxa_link_height}" d="${coxa_link_depth}"/>
+      
+      <visual>
+        <geometry>
+          <box size="${coxa_link_width} ${coxa_link_height} ${coxa_link_depth}"/>
+        </geometry>
+        <origin xyz="${coxa_link_width/2} 0.0 0.0" rpy="0 0 0"/>
+        <material name="white">
+          <color rgba="1 1 1 1"/>
+        </material>
+      </visual>
+
+      <collision>
+        <geometry>
+          <box size="${coxa_link_width} ${coxa_link_height} ${coxa_link_depth}"/>
+        </geometry>
+        <origin xyz="${coxa_link_width/2} 0.0 0.0" rpy="0 0 0"/>
+      </collision>
+    </link>
+
+    <link name="${prefix}femur_link">
+      <xacro:link_inertial m="${femur_link_mass}" w="${femur_link_width}" h="${femur_link_height}" d="${femur_link_depth}"/>
+      
+      <visual>
+        <geometry>
+          <box size="${femur_link_width} ${femur_link_height} ${femur_link_depth}"/>
+        </geometry>
+        <origin xyz="${femur_link_width/2} 0.0 0.0" rpy="0 0 0"/>
+        <material name="white">
+          <color rgba="1 1 1 1"/>
+        </material>
+      </visual>
+
+      <collision>
+        <geometry>
+          <box size="${femur_link_width} ${femur_link_height} ${femur_link_depth}"/>
+        </geometry>
+        <origin xyz="${femur_link_width/2} 0.0 0.0" rpy="0 0 0"/>
+      </collision>
+    </link>
+
+    <link name="${prefix}tibia_link">
+      <xacro:link_inertial m="${tibia_link_mass}" w="${tibia_link_width}" h="${tibia_link_height}" d="${tibia_link_depth}"/>
+      
+      <visual>
+        <geometry>
+          <box size="${tibia_link_width} ${tibia_link_height} ${tibia_link_depth}"/>
+        </geometry>
+        <origin xyz="${tibia_link_width/2} 0.0 0.0" rpy="0 0 0"/>
+        <material name="white">
+          <color rgba="1 1 1 1"/>
+        </material>
+      </visual>
+      
+      <collision>
+        <geometry>
+          <box size="${tibia_link_width} ${tibia_link_height} ${tibia_link_depth}"/>
+        </geometry>
+        <origin xyz="${tibia_link_width/2} 0.0 0.0" rpy="0 0 0"/>
+      </collision>
+    </link>
+
+    <joint name="${prefix}fixed_base_joint" type="fixed">
+      <xacro:insert_block name="origin" /> 
+      <parent link="${parent}"/>
+      <child link="${prefix}base_motor_link"/>
+    </joint>
+
+    <link name="${prefix}base_motor_link">
+        <inertial>
+            <mass value="0.01"/> <inertia ixx="0.00001" ixy="0.0" ixz="0.0" iyy="0.00001" iyz="0.0" izz="0.00001"/>
+        </inertial>
+    </link>
+
+    <joint name="${prefix}coxa_joint" type="revolute">
+      <axis xyz="0 0 1"/>
+      <limit effort="${joint_effort}" lower="-1.57" upper="1.57" velocity="${joint_velocity}"/>
+      <parent link="${prefix}base_motor_link"/>
+      <child link="${prefix}coxa_link"/>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <dynamics damping="${joint_damping}" friction="${joint_friction}"/>
+    </joint>
+
+    <joint name="${prefix}coxa_link_to_${prefix}femur_link" type="revolute">
+      <axis xyz="0 1 0"/>
+      <limit effort="${joint_effort}" lower="-1.57" upper="1.57" velocity="${joint_velocity}"/>
+      <parent link="${prefix}coxa_link"/>
+      <child link="${prefix}femur_link"/>
+      <origin xyz="${coxa_link_width} 0 0" rpy="0 0 0"/>
+      <dynamics damping="${joint_damping}" friction="${joint_friction}"/>
+    </joint>
+
+    <joint name="${prefix}femur_link_to_${prefix}tibia_link" type="revolute">
+      <axis xyz="0 1 0"/>
+      <limit effort="${joint_effort}" lower="-1.57" upper="1.57" velocity="${joint_velocity}"/>
+      <parent link="${prefix}femur_link"/>
+      <child link="${prefix}tibia_link"/>
+      <origin xyz="${femur_link_width} 0 0" rpy="0 0 0"/>
+      <dynamics damping="${joint_damping}" friction="${joint_friction}"/>
+    </joint>
+
+    <xacro:material_visual ref_link="${prefix}coxa_link" ambient="1 1 1 1" diffuse="1 1 1 1" specular="1 1 1 1"/>
+    <xacro:material_visual ref_link="${prefix}femur_link" ambient="1 1 1 1" diffuse="1 1 1 1" specular="1 1 1 1"/>
+    <xacro:material_visual ref_link="${prefix}tibia_link" ambient="1 1 1 1" diffuse="1 1 1 1" specular="1 1 1 1"/>
+
+  </xacro:macro>
+</robot>
