@@ -16,11 +16,6 @@ class StandingPositionNode(Node):
             '/leg_controller/follow_joint_trajectory'
         )
 
-        # Wait for both action servers to be available
-        self.get_logger().info('Waiting for action servers...')
-        self.spider_client.wait_for_server()
-        self.get_logger().info('Action servers connected!')
-
         # List of joint names for the robot
         self.joint_names = [
             'rf_coxa_joint',
@@ -53,35 +48,34 @@ class StandingPositionNode(Node):
             0, 0.4, 0.6, # Leg 6
         ]
 
-        # Create timer that triggers the control loop quickly after start (0.1 seconds)
-        self.create_timer(0.1, self.stand_up_controller)
-
-    def stand_up_controller(self) -> None:
+    def stand_up_controller(self):
         # Create a trajectory point with the target positions
         point = JointTrajectoryPoint()
         point.positions = self.target_pos
-        point.time_from_start = Duration(sec=0, nanosec=500000000)  # Allow 0.5 seconds for movement
+        # faster movement: allow only 0.2 seconds to reach the target
+        point.time_from_start = Duration(sec=0, nanosec=200000000)
 
         # Create and send the goal message
         goal_msg = FollowJointTrajectory.Goal()
         goal_msg.trajectory.joint_names = self.joint_names
         goal_msg.trajectory.points = [point]
 
-        self.spider_client.send_goal_async(goal_msg)
+        # Wait for both action servers to be available
+        self.get_logger().info('Waiting for action servers...')
+        self.spider_client.wait_for_server()
+        self.get_logger().info('Action servers connected!')
+
+        return self.spider_client.send_goal_async(goal_msg)
 
 
 def main(args=None):
     rclpy.init(args=args)
 
-    controller = StandingPositionNode()
+    action_client = StandingPositionNode()
 
-    try:
-        rclpy.spin(controller)
-    except KeyboardInterrupt:
-        controller.get_logger().info('Shutting down standing position node...')
-    finally:
-        controller.destroy_node()
-        rclpy.shutdown()
+    future = action_client.stand_up_controller()
+
+    rclpy.spin_until_future_complete(action_client, future)
 
 if __name__ == '__main__':
     main()
