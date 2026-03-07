@@ -24,7 +24,14 @@ install (
 install(PROGRAMS
   scripts/poses/standing_position.py
   scripts/poses/home_position.py
+  scripts/poses/move_base.py
   DESTINATION lib/${PROJECT_NAME}
+)
+
+# Install Python modules
+install(
+  DIRECTORY scripts/utils/
+  DESTINATION share/${PROJECT_NAME}/utils
 )
 
 if(BUILD_TESTING)

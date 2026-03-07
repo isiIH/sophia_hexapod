@@ -1,10 +1,19 @@
 #!/usr/bin/env python3
+import sys
+from ament_index_python.packages import get_package_share_directory
+
+package_share_directory = get_package_share_directory('sophia_controller')
+
+sys.path.insert(0, package_share_directory)
+
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
 from control_msgs.action import FollowJointTrajectory
 from trajectory_msgs.msg import JointTrajectoryPoint
 from builtin_interfaces.msg import Duration
+
+from utils.spider import Spider
 
 class HomePositionNode(Node):
     def __init__(self):
@@ -38,20 +47,13 @@ class HomePositionNode(Node):
             'lb_femur_link_to_lb_tibia_link',
         ]
 
-        # Define target position
-        self.target_pos = [
-            0, 0, 0, # Leg 1
-            0, 0, 0, # Leg 2
-            0, 0, 0, # Leg 3
-            0, 0, 0, # Leg 4
-            0, 0, 0, # Leg 5
-            0, 0, 0, # Leg 6
-        ]
+        self.spider = Spider()
+        self.angles = self.spider.home()
 
     def get_home_controller(self):
         # Create a trajectory point with the target positions
         point = JointTrajectoryPoint()
-        point.positions = self.target_pos
+        point.positions = self.angles
         # faster movement: allow only 0.2 seconds to reach the target
         point.time_from_start = Duration(sec=0, nanosec=200000000)
 

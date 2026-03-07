@@ -1,10 +1,19 @@
 #!/usr/bin/env python3
+import sys
+from ament_index_python.packages import get_package_share_directory
+
+package_share_directory = get_package_share_directory('sophia_controller')
+
+sys.path.insert(0, package_share_directory)
+
 import rclpy
 from rclpy.node import Node
 from rclpy.action import ActionClient
 from control_msgs.action import FollowJointTrajectory
 from trajectory_msgs.msg import JointTrajectoryPoint
 from builtin_interfaces.msg import Duration
+
+from utils.spider import Spider
 
 class StandingPositionNode(Node):
     def __init__(self):
@@ -38,20 +47,15 @@ class StandingPositionNode(Node):
             'lb_femur_link_to_lb_tibia_link',
         ]
 
-        # Define target position
-        self.target_pos = [
-            0, 0.4, 0.6, # Leg 1
-            0, 0.4, 0.6, # Leg 2
-            0, 0.4, 0.6, # Leg 3
-            0, 0.4, 0.6, # Leg 4
-            0, 0.4, 0.6, # Leg 5
-            0, 0.4, 0.6, # Leg 6
-        ]
+        self.spider = Spider()
+        target_pos = [0.213, 0, -0.165]
+        self.angles = self.spider.move_legs([target_pos] * 6)
+        self.get_logger().info(str(self.angles))
 
     def stand_up_controller(self):
         # Create a trajectory point with the target positions
         point = JointTrajectoryPoint()
-        point.positions = self.target_pos
+        point.positions = self.angles
         # faster movement: allow only 0.2 seconds to reach the target
         point.time_from_start = Duration(sec=0, nanosec=200000000)
 

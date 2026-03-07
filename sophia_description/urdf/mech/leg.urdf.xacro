@@ -131,7 +131,7 @@
 
     <joint name="${prefix}coxa_link_to_${prefix}femur_link" type="revolute">
       <axis xyz="0 1 0"/>
-      <limit effort="${joint_effort}" lower="-1.57" upper="1.57" velocity="${joint_velocity}"/>
+      <limit effort="${joint_effort}" lower="-2.5" upper="2.5" velocity="${joint_velocity}"/>
       <parent link="${prefix}coxa_link"/>
       <child link="${prefix}femur_link"/>
       <origin xyz="${coxa_link_width} 0 0" rpy="0 0 0"/>
@@ -140,12 +140,20 @@
 
     <joint name="${prefix}femur_link_to_${prefix}tibia_link" type="revolute">
       <axis xyz="0 1 0"/>
-      <limit effort="${joint_effort}" lower="-1.57" upper="1.57" velocity="${joint_velocity}"/>
+      <limit effort="${joint_effort}" lower="-2.0" upper="2.0" velocity="${joint_velocity}"/>
       <parent link="${prefix}femur_link"/>
       <child link="${prefix}tibia_link"/>
       <origin xyz="${femur_link_width} 0 0" rpy="0 0 0"/>
       <dynamics damping="${joint_damping}" friction="${joint_friction}"/>
     </joint>
+
+    <gazebo reference="${prefix}tibia_link">
+      <mu1 value="2.0"/>
+      <mu2 value="2.0"/>
+      <kp value="10000000.0"/>
+      <kd value="1.0"/>
+      <minDepth value="0.001"/>
+    </gazebo>
 
     <xacro:material_visual ref_link="${prefix}coxa_link" ambient="1 1 1 1" diffuse="1 1 1 1" specular="1 1 1 1"/>
     <xacro:material_visual ref_link="${prefix}femur_link" ambient="1 1 1 1" diffuse="1 1 1 1" specular="1 1 1 1"/>
