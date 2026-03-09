@@ -22,8 +22,7 @@ install (
 
 # Install Python executables
 install(PROGRAMS
-  scripts/poses/standing_position.py
-  scripts/poses/home_position.py
+  scripts/poses/walk.py
   scripts/poses/move_base.py
   DESTINATION lib/${PROJECT_NAME}
 )

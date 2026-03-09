@@ -28,7 +28,5 @@ ros2 launch sophia_gazebo sophia_gazebo.launch.py
 2. Run the following tests in a new terminal:
 
 ```bash
-ros2 run sophia_controller standing_position.py
-
-ros2 run sophia_controller home_position.py
+ros2 run sophia_controller walk.py
 ```

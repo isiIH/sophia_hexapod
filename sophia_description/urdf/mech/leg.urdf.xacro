@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-    <xacro:property name="joint_effort" value="3.0"/>  <!-- max torque -->
+    <xacro:property name="joint_effort" value="15.0"/>  <!-- max torque -->
     <xacro:property name="joint_velocity" value="2.792527"/>
     <xacro:property name="joint_damping" value="0.1"/>
     <xacro:property name="joint_friction" value="0.01"/>
@@ -148,11 +148,11 @@
     </joint>
 
     <gazebo reference="${prefix}tibia_link">
-      <mu1 value="2.0"/>
-      <mu2 value="2.0"/>
-      <kp value="10000000.0"/>
-      <kd value="1.0"/>
-      <minDepth value="0.001"/>
+      <mu1>2.0</mu1>
+      <mu2>2.0</mu2>
+      <kp>1000000.0</kp>
+      <kd>100.0</kd>
+      <minDepth>0.001</minDepth>
     </gazebo>
 
     <xacro:material_visual ref_link="${prefix}coxa_link" ambient="1 1 1 1" diffuse="1 1 1 1" specular="1 1 1 1"/>

@@ -58,10 +58,18 @@
           </geometry>
           <surface>
             <friction>
+              <ode>
+                <mu>1.0</mu>
+                <mu2>1.0</mu2>
+              </ode>
               <torsional>
                 <coefficient>1.0</coefficient>
               </torsional>
             </friction>
+            <contact>
+              <ode>
+                <kp>1000000.0</kp> <kd>100.0</kd>     </ode>
+            </contact>
           </surface>
         </collision>
         <visual name="visual">
