@@ -14,8 +14,8 @@ from utils.spider import Spider
 from utils.gait_generator import GaitGenerator
 
 from std_msgs.msg import Float64MultiArray
-
-import time
+from std_msgs.msg import String
+from geometry_msgs.msg import Twist
 
 class WalkNode(Node):
     def __init__(self):
@@ -27,15 +27,22 @@ class WalkNode(Node):
             10
         )
 
-        self.spider = Spider()
-        self.time_step = 0.01
-        self.first_step = True
-        self.steps = 0
-        self.t = 0.0
+        self.gait_sub = self.create_subscription(
+            String,
+            "gait",
+            self.set_gait,
+            10
+        )
 
-        # Walk Parameters
-        self.step_vector = np.array([0.0, 0.15, 0.0])  # 5 cm step forward per cycle
-        self.height = 0.05
+        self.cmd_sub = self.create_subscription(
+            Twist,
+            "joy1/cmd_vel",
+            self.set_cmd_vel,
+            10
+        )
+
+        self.spider = Spider()
+        self.time_step = 0.02
 
         self.walk_controller()
 
@@ -61,11 +68,13 @@ class WalkNode(Node):
             [-xf, -yf, h]  # LB (Izquierda Trasera)
         ]
 
+        self.leg_positions = np.array(standing_pose)
+
         joint_angles = self.spider.move_legs(standing_pose, local=False)
 
-        self.send_msg(joint_angles)
+        self.send_angles(joint_angles)
 
-        self.gait = GaitGenerator(self.spider, "tripod")
+        self.gait = GaitGenerator(self.spider.get_leg_positions(), "tripod")
 
         self.get_logger().info("Init Walk Cycle...")
 
@@ -73,33 +82,25 @@ class WalkNode(Node):
         self.timer = self.create_timer(self.time_step, self.walk_loop)
     
     def walk_loop(self):
-        if self.t == 0:
-            self.gait.set_trajectory(self.step_vector, self.height, self.first_step)
+        self.leg_positions = self.gait.get_next_step()
 
-        leg_positions = self.gait.get_next_step(self.t)
+        joint_angles = self.spider.move_legs(self.leg_positions)
 
-        joint_angles = self.gait.spider.move_legs(leg_positions)
+        self.send_angles(joint_angles)
 
-        self.get_logger().info("t: " + str(self.t))
-
-        self.get_logger().info("leg_pos: " + str(leg_positions))
-
-        if self.t >= 1.0:
-            self.steps += 1
-            self.get_logger().info("Step " + str(self.steps))
-            self.t = 0.0
-            if self.first_step:
-                self.first_step = False
-        else:
-            self.t = round(self.t + self.time_step, 3)
-
-        self.send_msg(joint_angles)
-        
-
-    def send_msg(self, angles):
+    def send_angles(self, angles):
         msg = Float64MultiArray()
         msg.data = angles
         self.joint_pub.publish(msg)
+
+    def set_gait(self, msg : String):
+        self.get_logger().info("Setting gait to " + msg.data)
+        self.gait.set_gait_type(msg.data)
+
+    def set_cmd_vel(self, msg : Twist):
+        linear_speed = np.array([msg.linear.x, msg.linear.y, 0.0])
+        angular_speed = msg.angular.z
+        self.gait.set_linear_speed(linear_speed)
 
 
 def main(args=None):

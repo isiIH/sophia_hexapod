@@ -50,6 +50,9 @@ class Spider:
 
         return pos_cf[:3]
     
+    def get_leg_positions(self):
+        return np.array([leg.s_foot[:3].copy() for leg in self.legs])
+    
     def home(self):
         return self.move_legs([self.legs[0].p_foot_default] * 6, [1] * 6)
 

@@ -22,8 +22,9 @@ install (
 
 # Install Python executables
 install(PROGRAMS
-  scripts/poses/walk.py
-  scripts/poses/move_base.py
+  scripts/state_controller.py
+  scripts/walk.py
+  scripts/move_base.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
