@@ -16,9 +16,9 @@ class GaitGenerator:
         # Cycle parameters
         self.t = 0.0
         self.time_step = time_step
-        self.cycle_duration = 1.0
+        self.cycle_duration = 0.7
         self.t_inc = self.time_step / self.cycle_duration
-        self.step_factor = 0.15
+        self.step_factor = 0.05
         self.step_vector = np.zeros(3, dtype=np.float32)
         self.is_moving = False
         self.linear_speed = np.zeros(3, dtype=np.float32)

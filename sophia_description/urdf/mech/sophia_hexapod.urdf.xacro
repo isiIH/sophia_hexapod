@@ -11,28 +11,34 @@
 
     <xacro:prosoma_chassis base_link="base_link" prefix=""/>
 
+    <xacro:property name="rf_yaw" value="pi/3"/>
+
+    <xacro:macro name="origin_leg" params="yaw">
+        <origin xyz="${chassis_radius * cos(yaw)} ${chassis_radius * sin(yaw)} 0.0" rpy="0 0 ${yaw}"/>
+    </xacro:macro>
+
     <xacro:leg prefix="rf_" parent="base_link">
-        <origin xyz="0.06 0.08 0.0" rpy="0 0 ${pi/4}"/>
+        <xacro:origin_leg yaw="${pi/3}"/>
     </xacro:leg>
 
     <xacro:leg prefix="rm_" parent="base_link">
-        <origin xyz="0.06 0.0 0.0" rpy="0 0 0"/>
+        <xacro:origin_leg yaw="${0.0}"/>
     </xacro:leg>
 
     <xacro:leg prefix="rb_" parent="base_link">
-        <origin xyz="0.06 -0.08 0.0" rpy="0 0 ${-pi/4}"/>
+        <xacro:origin_leg yaw="${-pi/3}"/>
     </xacro:leg>
 
     <xacro:leg prefix="lf_" parent="base_link">
-        <origin xyz="-0.06 0.08 0.0" rpy="0 0 ${3*pi/4}"/>
+        <xacro:origin_leg yaw="${2*pi/3}"/>
     </xacro:leg>
 
     <xacro:leg prefix="lm_" parent="base_link">
-        <origin xyz="-0.06 0.0 0.0" rpy="0 0 ${pi}"/>
+        <xacro:origin_leg yaw="${pi}"/>
     </xacro:leg>
 
     <xacro:leg prefix="lb_" parent="base_link">
-        <origin xyz="-0.06 -0.08 0.0" rpy="0 0 ${5*pi/4}"/>
+        <xacro:origin_leg yaw="${4*pi/3}"/>
     </xacro:leg>
 
     <xacro:macro name="joint_gazebo" params="name">

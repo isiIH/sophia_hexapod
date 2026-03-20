@@ -25,8 +25,8 @@ source install/setup.bash
 ros2 launch sophia_gazebo sophia_gazebo.launch.py
 ```
 
-2. Run the following tests in a new terminal:
+2. Launch the joystick controller:
 
 ```bash
-ros2 run sophia_controller walk.py
+ros2 launch sophia_controller joystick_control.launch.py
 ```

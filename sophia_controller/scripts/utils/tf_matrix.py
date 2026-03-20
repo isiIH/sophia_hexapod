@@ -1,6 +1,6 @@
 import numpy as np
 
-def T(x, y, z, roll, pitch, yaw):
+def T(x=0.0, y=0.0, z=0.0, roll=0.0, pitch=0.0, yaw=0.0):
     cr, sr = np.cos(roll),  np.sin(roll)
     cp, sp = np.cos(pitch), np.sin(pitch)
     cy, sy = np.cos(yaw),   np.sin(yaw)

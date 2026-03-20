@@ -7,19 +7,20 @@
     <xacro:property name="joint_friction" value="0.01"/>
 
     <xacro:property name="coxa_link_mass" value="0.05"/>
-    <xacro:property name="coxa_link_width" value="0.04"/>
-    <xacro:property name="coxa_link_height" value="0.04"/>
-    <xacro:property name="coxa_link_depth" value="0.04"/>
+    <xacro:property name="coxa_link_width" value="0.035"/>
+    <xacro:property name="coxa_link_height" value="0.045"/>
+    <xacro:property name="coxa_link_depth" value="0.042"/>
 
     <xacro:property name="femur_link_mass" value="0.10"/>
-    <xacro:property name="femur_link_width" value="0.10"/>
-    <xacro:property name="femur_link_height" value="0.03"/>
-    <xacro:property name="femur_link_depth" value="0.03"/>
+    <xacro:property name="femur_link_width" value="0.045"/>
+    <xacro:property name="femur_link_height" value="0.013"/>
+    <xacro:property name="femur_link_depth" value="0.025"/>
 
     <xacro:property name="tibia_link_mass" value="0.08"/>
-    <xacro:property name="tibia_link_width" value="0.15"/>
-    <xacro:property name="tibia_link_height" value="0.02"/>
-    <xacro:property name="tibia_link_depth" value="0.02"/>
+    <xacro:property name="tibia_link_width" value="0.09"/>
+    <xacro:property name="tibia_link_height" value="0.015"/>
+    <xacro:property name="tibia_link_depth" value="0.005"/>
+    <xacro:property name="tibia_sphere_radius" value="${tibia_link_height/2}"/>
 
     <xacro:macro name="link_inertial" params="m w h d">
         <inertial>
@@ -50,17 +51,14 @@
       
       <visual>
         <geometry>
-          <box size="${coxa_link_width} ${coxa_link_height} ${coxa_link_depth}"/>
+          <box size="${coxa_link_width} ${coxa_link_depth} ${coxa_link_height}"/>
         </geometry>
         <origin xyz="${coxa_link_width/2} 0.0 0.0" rpy="0 0 0"/>
-        <material name="white">
-          <color rgba="1 1 1 1"/>
-        </material>
       </visual>
 
       <collision>
         <geometry>
-          <box size="${coxa_link_width} ${coxa_link_height} ${coxa_link_depth}"/>
+          <box size="${coxa_link_width} ${coxa_link_depth} ${coxa_link_height}"/>
         </geometry>
         <origin xyz="${coxa_link_width/2} 0.0 0.0" rpy="0 0 0"/>
       </collision>
@@ -71,17 +69,14 @@
       
       <visual>
         <geometry>
-          <box size="${femur_link_width} ${femur_link_height} ${femur_link_depth}"/>
+          <box size="${femur_link_width} ${femur_link_depth} ${femur_link_height}"/>
         </geometry>
         <origin xyz="${femur_link_width/2} 0.0 0.0" rpy="0 0 0"/>
-        <material name="white">
-          <color rgba="1 1 1 1"/>
-        </material>
       </visual>
 
       <collision>
         <geometry>
-          <box size="${femur_link_width} ${femur_link_height} ${femur_link_depth}"/>
+          <box size="${femur_link_width} ${femur_link_depth} ${femur_link_height}"/>
         </geometry>
         <origin xyz="${femur_link_width/2} 0.0 0.0" rpy="0 0 0"/>
       </collision>
@@ -92,19 +87,23 @@
       
       <visual>
         <geometry>
-          <box size="${tibia_link_width} ${tibia_link_height} ${tibia_link_depth}"/>
+          <box size="${tibia_link_width} ${tibia_link_depth} ${tibia_link_height}"/>
         </geometry>
         <origin xyz="${tibia_link_width/2} 0.0 0.0" rpy="0 0 0"/>
-        <material name="white">
-          <color rgba="1 1 1 1"/>
-        </material>
       </visual>
       
-      <collision>
+      <collision name="${prefix}tibia_body_collision">
         <geometry>
-          <box size="${tibia_link_width} ${tibia_link_height} ${tibia_link_depth}"/>
+          <box size="${tibia_link_width - tibia_sphere_radius} ${tibia_link_depth} ${tibia_link_height}"/>
         </geometry>
-        <origin xyz="${tibia_link_width/2} 0.0 0.0" rpy="0 0 0"/>
+        <origin xyz="${(tibia_link_width - tibia_sphere_radius)/2} 0.0 0.0" rpy="0 0 0"/>
+      </collision>
+
+      <collision name="${prefix}tibia_foot_collision">
+        <geometry>
+          <sphere radius="${tibia_sphere_radius}"/> 
+        </geometry>
+        <origin xyz="${tibia_link_width - tibia_sphere_radius} 0.0 0.0" rpy="0 0 0"/>
       </collision>
     </link>
 
@@ -146,13 +145,16 @@
       <origin xyz="${femur_link_width} 0 0" rpy="0 0 0"/>
       <dynamics damping="${joint_damping}" friction="${joint_friction}"/>
     </joint>
+    
 
     <gazebo reference="${prefix}tibia_link">
-      <mu1>2.0</mu1>
-      <mu2>2.0</mu2>
-      <kp>1000000.0</kp>
-      <kd>100.0</kd>
-      <minDepth>0.001</minDepth>
+      <mu1>1.5</mu1>
+      <mu2>1.5</mu2>
+      
+      <kp>500000.0</kp>
+      <kd>10.0</kd>
+      
+      <minDepth>0.002</minDepth>
     </gazebo>
 
     <xacro:material_visual ref_link="${prefix}coxa_link" ambient="1 1 1 1" diffuse="1 1 1 1" specular="1 1 1 1"/>

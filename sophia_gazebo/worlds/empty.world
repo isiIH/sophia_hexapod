@@ -63,7 +63,7 @@
                 <mu2>1.0</mu2>
               </ode>
               <torsional>
-                <coefficient>1.0</coefficient>
+                <coefficient>0.5</coefficient>
               </torsional>
             </friction>
             <contact>

@@ -2,17 +2,39 @@ from utils.tf_matrix import T
 import numpy as np
 from utils.leg import Leg
 
+import xacro
+import os
+from urdf_parser_py.urdf import URDF
+from ament_index_python.packages import get_package_share_directory
+
 class Spider:
     def __init__(self):
-        self.T_sb = T(0, 0, 0, 0, 0, 0)
-        self.legs : np.ndarray[Leg] = np.array([
-            Leg(0.06, 0.08, 0, 0, 0, np.pi/4), #rf
-            Leg(0.06, 0, 0, 0, 0, 0), #rm
-            Leg(0.06, -0.08, 0, 0, 0, -np.pi/4), #rb
-            Leg(-0.06, 0.08, 0, 0, 0, 3*np.pi/4), #lf
-            Leg(-0.06, 0, 0, 0, 0, np.pi), #rm
-            Leg(-0.06, -0.08, 0, 0, 0, 5*np.pi/4) #rb
-        ])
+        self.legs = []
+        self.T_sb = T()
+        self.read_config_robot()
+
+    def read_config_robot(self):
+        pkg_path = get_package_share_directory('sophia_description')
+        xacro_file = os.path.join(pkg_path, 'urdf', 'mech', 'sophia_hexapod.urdf.xacro')
+
+        doc = xacro.process_file(xacro_file)
+        robot_urdf = URDF.from_xml_string(doc.toxml())
+
+        # Get the length of the links
+        hip_length = float(robot_urdf.link_map['rf_coxa_link'].visual.geometry.size[0])
+        femur_length = float(robot_urdf.link_map['rf_femur_link'].visual.geometry.size[0])
+        tibia_length = float(robot_urdf.link_map['rf_tibia_link'].visual.geometry.size[0])
+
+        dims = [hip_length, femur_length, tibia_length]
+
+        # Get the origin of each leg
+        prefixes = ['rf_', 'rm_', 'rb_', 'lf_', 'lm_', 'lb_']
+        for p in prefixes:
+            joint_name = f"{p}fixed_base_joint"
+            xyz = robot_urdf.joint_map[joint_name].origin.xyz
+            rpy = robot_urdf.joint_map[joint_name].origin.rpy
+
+            self.legs.append(Leg(dims, xyz_rpy= xyz + rpy))
 
     def update_body_pos(self, x, y, z, roll, pitch, yaw):
         self.T_sb = T(x, y, z, roll, pitch, yaw)
@@ -55,6 +77,3 @@ class Spider:
     
     def home(self):
         return self.move_legs([self.legs[0].p_foot_default] * 6, [1] * 6)
-
-
-    

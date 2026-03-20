@@ -51,26 +51,12 @@ class WalkNode(Node):
         self.get_logger().info("Send Standing Pose...")
 
         # Stand-up
-        # target_pos = [0.213, 0, -0.165]
-        # joint_angles = self.spider.move_legs([target_pos] * 6, local=True)
-
-        h = -0.165 # Altura Z
-        xf = 0.12  # X de patas Frontales/Traseras
-        xm = 0.24  # X de patas Medias (¡Exactamente el doble de xf!)
-        yf = 0.22  # Y de patas Frontales/Traseras
-
-        standing_pose = [
-            [ xf,  yf, h], # RF (Derecha Frontal)
-            [ xm, 0.0, h], # RM (Derecha Media)
-            [ xf, -yf, h], # RB (Derecha Trasera)
-            [-xf,  yf, h], # LF (Izquierda Frontal)
-            [-xm, 0.0, h], # LM (Izquierda Media)
-            [-xf, -yf, h]  # LB (Izquierda Trasera)
-        ]
+        target_pos = [0.1172, 0, -0.0627]
+        standing_pose = [target_pos] * 6
 
         self.leg_positions = np.array(standing_pose)
 
-        joint_angles = self.spider.move_legs(standing_pose, local=False)
+        joint_angles = self.spider.move_legs(standing_pose, local=True)
 
         self.send_angles(joint_angles)
 
