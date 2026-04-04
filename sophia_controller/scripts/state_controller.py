@@ -5,6 +5,8 @@ from sensor_msgs.msg import Joy
 from geometry_msgs.msg import Twist
 from std_msgs.msg import String
 
+import numpy as np
+
 GAITS = ['tripod', 'ripple', 'wave', 'bi', 'tetrapod']
 
 class StateController(Node):
@@ -31,7 +33,7 @@ class StateController(Node):
 
         # Movement params
         self.linear_limit = 0.3
-        self.angular_limit = 1.0
+        self.angular_limit = np.pi / 9 # 20 degrees
 
         # Gait params
         self.is_pressed = False
@@ -42,7 +44,7 @@ class StateController(Node):
     def state_callback(self, joy_msg : Joy):
         # self.get_logger().info(f'Recibiendo: ' + str(joy_msg))
 
-        self.send_movement(joy_msg.axes[:3])
+        self.send_movement(joy_msg.axes[:4])
 
         self.send_gait_command(joy_msg.buttons[5])
         
@@ -55,7 +57,7 @@ class StateController(Node):
         twist.linear.y = axes[0] * self.linear_limit 
 
         # Right Stick (Rotation)
-        twist.angular.z = axes[2] * self.angular_limit
+        twist.angular.z = axes[3] * self.angular_limit
 
         self.movement_publisher.publish(twist)
 

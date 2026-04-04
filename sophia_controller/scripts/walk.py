@@ -11,10 +11,9 @@ from rclpy.node import Node
 
 import numpy as np
 from utils.spider import Spider
-from utils.gait_generator import GaitGenerator
 
 from std_msgs.msg import Float64MultiArray
-from std_msgs.msg import String
+from std_msgs.msg import String, Int32
 from geometry_msgs.msg import Twist
 
 class WalkNode(Node):
@@ -27,10 +26,23 @@ class WalkNode(Node):
             10
         )
 
+        self.target_pub = self.create_publisher(
+            Float64MultiArray,
+            '/leg_target_positions',
+            10
+        )
+
         self.gait_sub = self.create_subscription(
             String,
             "gait",
             self.set_gait,
+            10
+        )
+
+        self.up_down_sub = self.create_subscription(
+            Int32,
+            "up_down",
+            self.set_height,
             10
         )
 
@@ -51,16 +63,9 @@ class WalkNode(Node):
         self.get_logger().info("Send Standing Pose...")
 
         # Stand-up
-        target_pos = [0.1172, 0, -0.0627]
-        standing_pose = [target_pos] * 6
-
-        self.leg_positions = np.array(standing_pose)
-
-        joint_angles = self.spider.move_legs(standing_pose, local=True)
+        joint_angles = self.spider.get_joint_angles()
 
         self.send_angles(joint_angles)
-
-        self.gait = GaitGenerator(self.spider.get_leg_positions(), "tripod")
 
         self.get_logger().info("Init Walk Cycle...")
 
@@ -68,7 +73,12 @@ class WalkNode(Node):
         self.timer = self.create_timer(self.time_step, self.walk_loop)
     
     def walk_loop(self):
-        self.leg_positions = self.gait.get_next_step()
+        self.leg_positions = self.spider.gait.get_next_step()
+
+        # Publish the raw leg target points
+        msg = Float64MultiArray()
+        msg.data = self.leg_positions.flatten().tolist()
+        self.target_pub.publish(msg)
 
         joint_angles = self.spider.move_legs(self.leg_positions)
 
@@ -79,14 +89,19 @@ class WalkNode(Node):
         msg.data = angles
         self.joint_pub.publish(msg)
 
+    def set_height(self, msg : Int32):
+        self.spider.set_height(msg.data)
+
     def set_gait(self, msg : String):
         self.get_logger().info("Setting gait to " + msg.data)
-        self.gait.set_gait_type(msg.data)
+        self.spider.gait.set_gait_type(msg.data)
 
     def set_cmd_vel(self, msg : Twist):
         linear_speed = np.array([msg.linear.x, msg.linear.y, 0.0])
         angular_speed = msg.angular.z
-        self.gait.set_linear_speed(linear_speed)
+
+        self.spider.gait.set_linear_speed(linear_speed)
+        self.spider.gait.set_angular_speed(angular_speed)
 
 
 def main(args=None):
