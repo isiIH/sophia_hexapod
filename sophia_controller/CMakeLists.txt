@@ -24,7 +24,6 @@ install (
 install(PROGRAMS
   scripts/state_controller.py
   scripts/walk.py
-  scripts/move_base.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

@@ -57,6 +57,8 @@ def generate_launch_description():
     # Launch configuration variables
     robot_name = LaunchConfiguration('robot_name')
     world_file = LaunchConfiguration('world_file')
+    use_gazebo = LaunchConfiguration('use_gazebo')
+    use_rviz = LaunchConfiguration('use_rviz')
 
     world_path = PathJoinSubstitution([
         pkg_share_gazebo,
@@ -82,6 +84,16 @@ def generate_launch_description():
         name='world_file',
         default_value=default_world_file,
         description='World file name (e.g., empty.world, house.world, pick_and_place_demo.world)')
+
+    declare_use_gazebo_cmd = DeclareLaunchArgument(
+        name='use_gazebo',
+        default_value='true',
+        description='Flag to enable Gazebo')
+
+    declare_use_rviz_cmd = DeclareLaunchArgument(
+        name='use_rviz',
+        default_value='false',
+        description='Flag to enable RViz')
 
     # Pose arguments
     declare_x_cmd = DeclareLaunchArgument(
@@ -118,7 +130,11 @@ def generate_launch_description():
     robot_state_publisher_cmd = IncludeLaunchDescription(
         PythonLaunchDescriptionSource([
             os.path.join(pkg_share_description, 'launch', 'display.launch.py')
-        ])
+        ]),
+        launch_arguments={
+            'use_rviz': use_rviz,
+            'use_gazebo': use_gazebo,
+        }.items()
     )
 
     # Include ROS 2 Controllers launch file if enabled
@@ -181,6 +197,8 @@ def generate_launch_description():
     # Declare the launch options
     ld.add_action(declare_robot_name_cmd)
     ld.add_action(declare_world_cmd)
+    ld.add_action(declare_use_gazebo_cmd)
+    ld.add_action(declare_use_rviz_cmd)
 
     # Add pose arguments
     ld.add_action(declare_x_cmd)

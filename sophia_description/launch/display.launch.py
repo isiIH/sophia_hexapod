@@ -1,8 +1,12 @@
+from launch.substitutions import LaunchConfiguration
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch_ros.actions import Node
-import xacro
+from launch.conditions import IfCondition
+from launch_ros.parameter_descriptions import ParameterValue
+from launch.substitutions import Command
+from launch.actions import DeclareLaunchArgument
 
 def generate_launch_description():
     pkg_name = 'sophia_description'
@@ -12,9 +16,25 @@ def generate_launch_description():
     rviz_file = 'sophia_spider.rviz'
     rviz_config_path = os.path.join(get_package_share_directory(pkg_name), 'rviz', rviz_file)
     
-    # Procesar Xacro
-    robot_description_config = xacro.process_file(xacro_file)
-    params = {'robot_description': robot_description_config.toxml()}
+    # Launch configuration variables
+    use_rviz = LaunchConfiguration('use_rviz')
+    use_gazebo = LaunchConfiguration('use_gazebo')
+
+    declare_use_rviz_cmd = DeclareLaunchArgument(
+        name='use_rviz',
+        default_value='false',
+        description='Whether to start RVIZ')
+
+    declare_use_gazebo_cmd = DeclareLaunchArgument(
+        name='use_gazebo',
+        default_value='true',
+        description='Whether to start Gazebo')
+
+    robot_description_content = ParameterValue(Command([
+        'xacro', ' ', xacro_file, ' ',
+        'use_gazebo:=', use_gazebo, ' ',
+    ]), value_type=str)
+    params = {'robot_description': robot_description_content}
 
     # Nodo: Robot State Publisher
     node_robot_state_publisher = Node(
@@ -26,6 +46,7 @@ def generate_launch_description():
 
     # Nodo: Joint State Publisher GUI (Para mover las patas con barritas)
     node_joint_state_publisher_gui = Node(
+        condition=IfCondition(use_rviz),
         package='joint_state_publisher_gui',
         executable='joint_state_publisher_gui',
         name='joint_state_publisher_gui'
@@ -33,6 +54,7 @@ def generate_launch_description():
 
     # Nodo: RViz
     node_rviz = Node(
+        condition=IfCondition(use_rviz),
         package='rviz2',
         executable='rviz2',
         name='rviz2',
@@ -40,8 +62,13 @@ def generate_launch_description():
         arguments=['-d', rviz_config_path]
     )
 
-    return LaunchDescription([
-        node_robot_state_publisher,
-        node_joint_state_publisher_gui,
-        node_rviz
-    ])
+    ld = LaunchDescription()
+
+    ld.add_action(declare_use_rviz_cmd)
+    ld.add_action(declare_use_gazebo_cmd)
+
+    ld.add_action(node_joint_state_publisher_gui)
+    ld.add_action(node_robot_state_publisher)
+    ld.add_action(node_rviz)
+
+    return ld

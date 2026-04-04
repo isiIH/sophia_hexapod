@@ -1,8 +1,14 @@
 <?xml version="1.0"?>
 <robot name="sophia_hexapod" xmlns:xacro="http://wiki.ros.org/xacro">
 
+    <xacro:arg name="use_gazebo" default="false"/>
+
     <xacro:include filename="$(find sophia_description)/urdf/mech/prosoma_chassis.urdf.xacro" />
     <xacro:include filename="$(find sophia_description)/urdf/mech/leg.urdf.xacro" />
+
+    <xacro:if value="$(arg use_gazebo)">
+        <xacro:include filename="$(find sophia_description)/urdf/gazebo/gazebo_config.urdf.xacro" />
+    </xacro:if>
 
     <link name="base_footprint"/> <joint name="base_joint" type="fixed">
         <parent link="base_footprint"/>
@@ -41,50 +47,13 @@
         <xacro:origin_leg yaw="${4*pi/3}"/>
     </xacro:leg>
 
-    <xacro:macro name="joint_gazebo" params="name">
-        <joint name="${name}">
-            <command_interface name="position">
-                <param name="min">-1.57</param>
-                <param name="max">1.57</param>
-            </command_interface>
-            <state_interface name="position"/>
-            <state_interface name="velocity"/>
-        </joint>
-    </xacro:macro>
-
-    <gazebo>
-        <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
-            <parameters>$(find sophia_controller)/config/sophia_controllers.yaml</parameters>
-            <ros>
-                <remapping>/controller_manager/robot_description:=/robot_description</remapping>
-            </ros>
-        </plugin>
-    </gazebo>
-
-    <ros2_control name="RobotSystem" type="system">
-        <hardware>
-            <plugin>gz_ros2_control/GazeboSimSystem</plugin>
-        </hardware>
-
-        <xacro:joint_gazebo name="rf_coxa_joint"/>
-        <xacro:joint_gazebo name="rf_coxa_link_to_rf_femur_link"/>
-        <xacro:joint_gazebo name="rf_femur_link_to_rf_tibia_link"/>
-        <xacro:joint_gazebo name="rm_coxa_joint"/>
-        <xacro:joint_gazebo name="rm_coxa_link_to_rm_femur_link"/>
-        <xacro:joint_gazebo name="rm_femur_link_to_rm_tibia_link"/>
-        <xacro:joint_gazebo name="rb_coxa_joint"/>
-        <xacro:joint_gazebo name="rb_coxa_link_to_rb_femur_link"/>
-        <xacro:joint_gazebo name="rb_femur_link_to_rb_tibia_link"/>
-        <xacro:joint_gazebo name="lf_coxa_joint"/>
-        <xacro:joint_gazebo name="lf_coxa_link_to_lf_femur_link"/>
-        <xacro:joint_gazebo name="lf_femur_link_to_lf_tibia_link"/>
-        <xacro:joint_gazebo name="lm_coxa_joint"/>
-        <xacro:joint_gazebo name="lm_coxa_link_to_lm_femur_link"/>
-        <xacro:joint_gazebo name="lm_femur_link_to_lm_tibia_link"/>
-        <xacro:joint_gazebo name="lb_coxa_joint"/>
-        <xacro:joint_gazebo name="lb_coxa_link_to_lb_femur_link"/>
-        <xacro:joint_gazebo name="lb_femur_link_to_lb_tibia_link"/>
-
-    </ros2_control>
+    <xacro:if value="$(arg use_gazebo)">
+        <xacro:leg_gazebo_config prefix="rf_"/>
+        <xacro:leg_gazebo_config prefix="rm_"/>
+        <xacro:leg_gazebo_config prefix="rb_"/>
+        <xacro:leg_gazebo_config prefix="lf_"/>
+        <xacro:leg_gazebo_config prefix="lm_"/>
+        <xacro:leg_gazebo_config prefix="lb_"/>
+    </xacro:if>
 
 </robot>

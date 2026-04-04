@@ -145,21 +145,6 @@
       <origin xyz="${femur_link_width} 0 0" rpy="0 0 0"/>
       <dynamics damping="${joint_damping}" friction="${joint_friction}"/>
     </joint>
-    
-
-    <gazebo reference="${prefix}tibia_link">
-      <mu1>1.5</mu1>
-      <mu2>1.5</mu2>
-      
-      <kp>500000.0</kp>
-      <kd>10.0</kd>
-      
-      <minDepth>0.002</minDepth>
-    </gazebo>
-
-    <xacro:material_visual ref_link="${prefix}coxa_link" ambient="1 1 1 1" diffuse="1 1 1 1" specular="1 1 1 1"/>
-    <xacro:material_visual ref_link="${prefix}femur_link" ambient="1 1 1 1" diffuse="1 1 1 1" specular="1 1 1 1"/>
-    <xacro:material_visual ref_link="${prefix}tibia_link" ambient="1 1 1 1" diffuse="1 1 1 1" specular="1 1 1 1"/>
 
   </xacro:macro>
 </robot>
