@@ -12,14 +12,12 @@ class GaitGenerator:
         self.home_positions = np.copy(home_pos)
         self.current_leg_positions = np.copy(home_pos)
         self.phase_start_pos = np.copy(home_pos)
-        self.phase_target_pos = np.copy(home_pos)
 
         # Cycle parameters
         self.t = 0.0
         self.time_step = time_step
         self.cycle_duration = 1.0
         self.t_inc = self.time_step / self.cycle_duration
-        self.step_vector = np.zeros(3, dtype=np.float32)
         self.is_moving = False
         self.linear_speed = np.zeros(3, dtype=np.float32)
         self.angular_speed = 0.0
@@ -30,7 +28,6 @@ class GaitGenerator:
         # Bezier params
         self.height = 0.05
         self.swings = [BezierCurve(np.copy(pos), np.copy(pos), self.height) for pos in home_pos] 
-        self.stances = [None] * 6 
               
     def _get_gait_params(self, type):
         match type:
@@ -70,8 +67,8 @@ class GaitGenerator:
         R_backward = T(yaw=-yaw_half)[:3, :3]
         
         trans_vec = np.array([
-            self.step_vector[0] / 2.0, 
-            self.step_vector[1] / 2.0, 
+            self.linear_speed[0] / 2.0, 
+            self.linear_speed[1] / 2.0, 
             0.0
         ])
 
@@ -150,10 +147,10 @@ class GaitGenerator:
 
         # Apply low-pass filter for smooth transitions (alpha = 0.1 at 50Hz = ~0.2s time constant)
         alpha = 0.1
-        self.step_vector = self.step_vector * (1.0 - alpha) + target_linear * alpha
+        self.linear_speed = self.linear_speed * (1.0 - alpha) + target_linear * alpha
         self.angular_speed = self.angular_speed * (1.0 - alpha) + target_angular * alpha
 
-        mag = np.linalg.norm(self.step_vector)
+        mag = np.linalg.norm(self.linear_speed)
         mag_angular = abs(self.angular_speed)
 
         # Handle stop conditions / Return to stance exactly cleanly

@@ -3,7 +3,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Joy
 from geometry_msgs.msg import Twist
-from std_msgs.msg import String
+from std_msgs.msg import String, Int32
 
 import numpy as np
 
@@ -31,9 +31,16 @@ class StateController(Node):
             10
         )
 
+        self.height_publisher = self.create_publisher(
+            Int32,
+            'up_down',
+            10
+        )
+
         # Movement params
         self.linear_limit = 0.07
         self.angular_limit = np.pi / 36 # 5 degrees
+        self.previous_btn = 0
 
         # Gait params
         self.is_pressed = False
@@ -47,6 +54,8 @@ class StateController(Node):
         self.send_movement(joy_msg.axes[:4])
 
         self.send_gait_command(joy_msg.buttons[5])
+
+        self.send_height_command(joy_msg.axes[-1])
         
 
     def send_movement(self, axes):
@@ -77,6 +86,17 @@ class StateController(Node):
                 self.gait_publisher.publish(msg)
 
                 self.get_logger().info("Sending gait change to " + GAITS[self.gait_idx])
+
+    def send_height_command(self, str_up_down):
+        up_down = int(str_up_down)
+
+        if up_down != 0 and self.previous_btn != up_down:
+            msg = Int32()
+            msg.data = int(up_down)
+            self.height_publisher.publish(msg)
+
+        # Always update previous_btn so we know when it is released (returns to 0)
+        self.previous_btn = up_down
 
 def main(args=None):
     rclpy.init(args=args)
