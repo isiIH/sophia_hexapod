@@ -15,7 +15,7 @@ class Spider:
         self.T_sb = T()
         self.read_config_robot()
 
-        self.home_positions = np.array([[0.1172, 0, -0.0627]] * 6)
+        self.home_positions = np.array([[0.085, 0, -0.0627]] * 6)
         self.home()
         home_s_foot = self.get_leg_positions()
 

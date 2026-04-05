@@ -32,8 +32,8 @@ class StateController(Node):
         )
 
         # Movement params
-        self.linear_limit = 0.3
-        self.angular_limit = np.pi / 9 # 20 degrees
+        self.linear_limit = 0.07
+        self.angular_limit = np.pi / 36 # 5 degrees
 
         # Gait params
         self.is_pressed = False

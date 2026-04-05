@@ -12,6 +12,7 @@ from launch.actions import (
     DeclareLaunchArgument,
     IncludeLaunchDescription
 )
+from launch.conditions import IfCondition
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch.substitutions import LaunchConfiguration, PathJoinSubstitution
 from launch_ros.actions import Node
@@ -59,6 +60,7 @@ def generate_launch_description():
     world_file = LaunchConfiguration('world_file')
     use_gazebo = LaunchConfiguration('use_gazebo')
     use_rviz = LaunchConfiguration('use_rviz')
+    use_rviz_gui = LaunchConfiguration('use_rviz_gui')
 
     world_path = PathJoinSubstitution([
         pkg_share_gazebo,
@@ -94,6 +96,11 @@ def generate_launch_description():
         name='use_rviz',
         default_value='false',
         description='Flag to enable RViz')
+
+    declare_use_rviz_gui_cmd = DeclareLaunchArgument(
+        name='use_rviz_gui',
+        default_value='false',
+        description='Flag to enable Joint State Publisher GUI')
 
     # Pose arguments
     declare_x_cmd = DeclareLaunchArgument(
@@ -133,25 +140,29 @@ def generate_launch_description():
         ]),
         launch_arguments={
             'use_rviz': use_rviz,
+            'use_rviz_gui': use_rviz_gui,
             'use_gazebo': use_gazebo,
         }.items()
     )
 
     # Include ROS 2 Controllers launch file if enabled
     load_controllers_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([
+        condition=IfCondition(use_gazebo),
+        launch_description_source=PythonLaunchDescriptionSource([
             os.path.join(pkg_share_controller, 'launch', 'load_ros2_controllers.launch.py')
         ])
     )
 
     # Start Gazebo
     start_gazebo_cmd = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource(
+        condition=IfCondition(use_gazebo),
+        launch_description_source=PythonLaunchDescriptionSource(
             os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py')),
         launch_arguments=[('gz_args', [' -r -v 4 ', world_path])])
 
     # Bridge ROS topics and Gazebo messages for establishing communication
     start_gazebo_ros_bridge_cmd = Node(
+        condition=IfCondition(use_gazebo),
         package='ros_gz_bridge',
         executable='parameter_bridge',
         parameters=[{
@@ -162,6 +173,7 @@ def generate_launch_description():
 
     # Includes optimizations to minimize latency and bandwidth when streaming image data
     start_gazebo_ros_image_bridge_cmd = Node(
+        condition=IfCondition(use_gazebo),
         package='ros_gz_image',
         executable='image_bridge',
         arguments=[
@@ -176,6 +188,7 @@ def generate_launch_description():
 
     # Spawn the robot
     start_gazebo_ros_spawner_cmd = Node(
+        condition=IfCondition(use_gazebo),
         package='ros_gz_sim',
         executable='create',
         output='screen',
@@ -199,6 +212,7 @@ def generate_launch_description():
     ld.add_action(declare_world_cmd)
     ld.add_action(declare_use_gazebo_cmd)
     ld.add_action(declare_use_rviz_cmd)
+    ld.add_action(declare_use_rviz_gui_cmd)
 
     # Add pose arguments
     ld.add_action(declare_x_cmd)

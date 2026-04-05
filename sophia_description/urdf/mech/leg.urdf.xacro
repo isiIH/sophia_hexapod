@@ -44,6 +44,14 @@
     </gazebo>
   </xacro:macro>
 
+  <material name="black">
+    <color rgba="0.1 0.1 0.1 1.0"/>
+  </material>
+  
+  <material name="orange">
+    <color rgba="1.0 0.5 0.0 1.0"/>
+  </material>
+
   <xacro:macro name="leg" params="prefix parent *origin">
 
     <link name="${prefix}coxa_link">
@@ -54,6 +62,7 @@
           <box size="${coxa_link_width} ${coxa_link_depth} ${coxa_link_height}"/>
         </geometry>
         <origin xyz="${coxa_link_width/2} 0.0 0.0" rpy="0 0 0"/>
+        <material name="black"/>
       </visual>
 
       <collision>
@@ -72,6 +81,7 @@
           <box size="${femur_link_width} ${femur_link_depth} ${femur_link_height}"/>
         </geometry>
         <origin xyz="${femur_link_width/2} 0.0 0.0" rpy="0 0 0"/>
+        <material name="orange"/>
       </visual>
 
       <collision>
@@ -90,6 +100,7 @@
           <box size="${tibia_link_width} ${tibia_link_depth} ${tibia_link_height}"/>
         </geometry>
         <origin xyz="${tibia_link_width/2} 0.0 0.0" rpy="0 0 0"/>
+        <material name="black"/>
       </visual>
       
       <collision name="${prefix}tibia_body_collision">

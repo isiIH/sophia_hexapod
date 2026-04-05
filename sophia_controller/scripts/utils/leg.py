@@ -4,8 +4,8 @@ import numpy as np
 
 class Leg:
     def __init__(self, dims, xyz_rpy):
-        x, y, z, r, p, y = xyz_rpy
-        self.T_coxa = T(x, y, z, r, p, y)
+        x, y, z, r, p, yaw = xyz_rpy
+        self.T_coxa = T(x, y, z, r, p, yaw)
 
         self.hip_length = dims[0]
         self.femur_length = dims[1]

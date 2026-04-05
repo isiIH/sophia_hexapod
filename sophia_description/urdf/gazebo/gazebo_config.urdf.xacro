@@ -12,9 +12,10 @@
           <minDepth>0.002</minDepth>
         </gazebo>
 
-        <xacro:material_visual ref_link="${prefix}coxa_link" ambient="1 1 1 1" diffuse="1 1 1 1" specular="1 1 1 1"/>
-        <xacro:material_visual ref_link="${prefix}femur_link" ambient="1 1 1 1" diffuse="1 1 1 1" specular="1 1 1 1"/>
-        <xacro:material_visual ref_link="${prefix}tibia_link" ambient="1 1 1 1" diffuse="1 1 1 1" specular="1 1 1 1"/>
+        <xacro:material_visual ref_link="${prefix}coxa_link" ambient="0.05 0.05 0.05 1.0" diffuse="0.1 0.1 0.1 1.0" specular="0.1 0.1 0.1 1.0"/>
+        <xacro:material_visual ref_link="${prefix}femur_link" ambient="0.2 0.1 0.0 1.0" diffuse="1.0 0.4 0.0 1.0" specular="0.2 0.2 0.2 1.0"/>
+        <xacro:material_visual ref_link="${prefix}tibia_link" ambient="0.05 0.05 0.05 1.0" diffuse="0.1 0.1 0.1 1.0" specular="0.1 0.1 0.1 1.0"/>
+        
     </xacro:macro>
     
     <xacro:macro name="joint_gazebo" params="name">
@@ -36,6 +37,8 @@
             </ros>
         </plugin>
     </gazebo>
+
+    <xacro:material_visual ref_link="base_link" ambient="0.05 0.05 0.05 1.0" diffuse="0.1 0.1 0.1 1.0" specular="0.1 0.1 0.1 1.0"/>
 
     <ros2_control name="RobotSystem" type="system">
         <hardware>

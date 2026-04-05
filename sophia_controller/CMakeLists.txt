@@ -24,6 +24,7 @@ install (
 install(PROGRAMS
   scripts/state_controller.py
   scripts/walk.py
+  scripts/leg_trajectory_visualizer.py
   DESTINATION lib/${PROJECT_NAME}
 )
 

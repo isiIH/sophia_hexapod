@@ -15,14 +15,23 @@ from utils.spider import Spider
 from std_msgs.msg import Float64MultiArray
 from std_msgs.msg import String, Int32
 from geometry_msgs.msg import Twist
+from sensor_msgs.msg import JointState
 
 class WalkNode(Node):
     def __init__(self):
         super().__init__('walk')
 
+        # Publishes array commands to ros2_control
         self.joint_pub = self.create_publisher(
             Float64MultiArray,
             '/leg_controller/commands',
+            10
+        )
+
+        # Publishes named angles for RViz to draw the 3D model correctly
+        self.joint_state_pub = self.create_publisher(
+            JointState,
+            '/joint_states',
             10
         )
 
@@ -85,9 +94,28 @@ class WalkNode(Node):
         self.send_angles(joint_angles)
 
     def send_angles(self, angles):
+        # Send to Gazebo/Real robot hardware controller
         msg = Float64MultiArray()
         msg.data = angles
         self.joint_pub.publish(msg)
+        
+        # Send to RViz
+        joint_state_msg = JointState()
+        joint_state_msg.header.stamp = self.get_clock().now().to_msg()
+        prefixes = ['rf', 'rm', 'rb', 'lf', 'lm', 'lb']
+        for i, prefix in enumerate(prefixes):
+            joint_state_msg.name.extend([
+                f'{prefix}_coxa_joint',
+                f'{prefix}_coxa_link_to_{prefix}_femur_link',
+                f'{prefix}_femur_link_to_{prefix}_tibia_link'
+            ])
+            joint_state_msg.position.extend([
+                angles[i*3],
+                angles[i*3 + 1],
+                angles[i*3 + 2]
+            ])
+            
+        self.joint_state_pub.publish(joint_state_msg)
 
     def set_height(self, msg : Int32):
         self.spider.set_height(msg.data)
