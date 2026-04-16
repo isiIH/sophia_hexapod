@@ -12,12 +12,13 @@ class GaitGenerator:
         self.home_positions = np.copy(home_pos)
         self.current_leg_positions = np.copy(home_pos)
         self.phase_start_pos = np.copy(home_pos)
+        self.phase_start_stance_pos = np.copy(home_pos)
 
         # Cycle parameters
         self.t = 0.0
         self.time_step = time_step
         self.cycle_duration = 1.0
-        self.t_inc = self.time_step / self.cycle_duration
+        self.t_inc = self.time_step
         self.is_moving = False
         self.linear_speed = np.zeros(3, dtype=np.float32)
         self.angular_speed = 0.0
@@ -25,8 +26,14 @@ class GaitGenerator:
         self.cmd_linear_speed = np.zeros(3, dtype=np.float32)
         self.cmd_angular_speed = 0.0
 
-        # Bezier params
-        self.height = 0.05
+        # Bezier swing height.
+        # CRITICAL: must be ≤ 0.03m.
+        # At 0.05m the bezier midpoint falls inside the inner workspace dead-zone
+        # (hf < |femur - tibia| = 0.0375m) for legs whose swing target is near x_local≈COXA_L.
+        # This causes leg_ik() to return tibia=π (fully-extended singularity) → joint
+        # hammers its stop → asymmetric reaction force → yaw kick every step cycle.
+        # At 0.03m all midpoints stay outside the dead-zone: hf_min ≈ 0.047m > 0.0375m.
+        self.height = 0.03
         self.swings = [BezierCurve(np.copy(pos), np.copy(pos), self.height) for pos in home_pos] 
               
     def _get_gait_params(self, type):
@@ -87,8 +94,8 @@ class GaitGenerator:
 
             if is_swing != self.was_swing[i]:
                 if not is_swing:
-                    # Leg finishes swing -> just switch state
-                    pass
+                    # Leg finishes swing -> just switch state and lock landing position
+                    self.phase_start_stance_pos[i] = np.copy(self.current_leg_positions[i])
                 else:
                     # Leg lifts into swing: LOCK the start point exactly where it left the ground
                     self.phase_start_pos[i] = np.copy(self.current_leg_positions[i])
@@ -113,11 +120,11 @@ class GaitGenerator:
                 t_swing = t_local / self.swing_time
                 next_pos = self.swings[i].get_point(t_swing)
             else:
-                # Stance uses purely relative velocity updating derived from current targets
-                # to prevent teleporting when targets change abruptly near the end of stance!
-                total_displacement = self.current_end_poses[i] - self.current_start_poses[i]
-                v_leg_dt = total_displacement / self.stance_time * self.t_inc
-                next_pos = self.current_leg_positions[i] + v_leg_dt
+                # Stance uses exact interpolation to the target endpoint.
+                # Because current targets are low-pass filtered, no teleportation occurs 
+                # but this completely prevents the legs from drifting out of bounds during a turn!
+                t_stance = (t_local - self.swing_time) / self.stance_time
+                next_pos = (1.0 - t_stance) * self.phase_start_stance_pos[i] + t_stance * self.current_end_poses[i]
             
             self.current_leg_positions[i] = np.copy(next_pos)
 
@@ -139,11 +146,19 @@ class GaitGenerator:
         self.swing_time += (self.target_swing_time - self.swing_time) * 0.05
         self.stance_time = 1 - self.swing_time
 
+        # self.linear_speed = self.cmd_linear_speed
+        # self.angular_speed = self.cmd_angular_speed
+
         # Extract strictly analog target velocities bounded by physical step max limits
         target_linear = self.cmd_linear_speed
         
-        # Max yaw step limit is already bounded safely by state_controller angular_limit
-        target_angular = self.cmd_angular_speed
+        # Boost angular speed when doing pure rotation (no/low linear speed).
+        # At full linear speed: boost = 1.0 (no change)
+        # At zero linear speed: boost = 3.0 (3× wider turn steps)
+        linear_mag_cmd = np.linalg.norm(self.cmd_linear_speed)
+        linear_ratio = np.clip(linear_mag_cmd / 0.1, 0.0, 1.0)  # 0.1 = max linear speed
+        angular_boost = 3.0 - 2.0 * linear_ratio  # 3.0 → 1.0
+        target_angular = self.cmd_angular_speed * angular_boost
 
         # Apply low-pass filter for smooth transitions (alpha = 0.1 at 50Hz = ~0.2s time constant)
         alpha = 0.1
@@ -152,6 +167,17 @@ class GaitGenerator:
 
         mag = np.linalg.norm(self.linear_speed)
         mag_angular = abs(self.angular_speed)
+
+        # Dynamically scale the cycle duration based on movement velocity
+        # Higher velocity commands = shorter cycle time (faster stepping rate)
+        # We account for the 3.0x angular boost here to map cleanly to 0.0-1.0
+        speed_factor = max(mag / 0.1, mag_angular / (np.pi/36 * 3.0))
+        speed_factor = np.clip(speed_factor, 0.0, 1.0)
+        
+        # Wider dynamic range:
+        # speed_factor=0.0 → 2.0s cycle time (slow motion, precise positioning)
+        # speed_factor=1.0 → 0.6s cycle time (fast pacing)
+        self.cycle_duration = 2.0 - (1.4 * speed_factor)
 
         # Handle stop conditions / Return to stance exactly cleanly
         if mag < 1e-4 and mag_angular < 1e-4:

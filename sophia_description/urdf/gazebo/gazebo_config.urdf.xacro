@@ -3,13 +3,32 @@
 
     <xacro:macro name="leg_gazebo_config" params="prefix">
         <gazebo reference="${prefix}tibia_link">
-          <mu1>1.5</mu1>
-          <mu2>1.5</mu2>
-          
-          <kp>500000.0</kp>
-          <kd>10.0</kd>
-          
-          <minDepth>0.002</minDepth>
+          <!-- BULLET FEATHERSTONE reads friction ONLY from <bullet> tag.       -->
+          <!-- <mu1>/<mu2> top-level tags and <ode><mu> are silently IGNORED.   -->
+          <surface>
+            <bounce>
+              <restitution_coefficient>0.0</restitution_coefficient>
+              <threshold>0</threshold>
+            </bounce>
+            <friction>
+              <bullet>
+                <friction>0.5</friction>
+                <friction2>0.5</friction2>
+                <!-- rolling_friction MUST be 0 for sphere feet -->
+                <rolling_friction>0.0</rolling_friction>
+              </bullet>
+              <torsional>
+                <coefficient>0.0</coefficient>
+              </torsional>
+            </friction>
+            <contact>
+              <bullet>
+                <!-- split_impulse is CRITICAL to prevent violent yaw kicks -->
+                <split_impulse>true</split_impulse>
+                <split_impulse_penetration_threshold>-0.001</split_impulse_penetration_threshold>
+              </bullet>
+            </contact>
+          </surface>
         </gazebo>
 
         <xacro:material_visual ref_link="${prefix}coxa_link" ambient="0.05 0.05 0.05 1.0" diffuse="0.1 0.1 0.1 1.0" specular="0.1 0.1 0.1 1.0"/>
@@ -32,6 +51,9 @@
     <gazebo>
         <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
             <parameters>$(find sophia_controller)/config/sophia_controllers.yaml</parameters>
+            <!-- P-gain 0.7: time_constant=~14ms. Tighter tracking than 0.5
+                 without the bounce of 1.0. -->
+            <position_proportional_gain>0.7</position_proportional_gain>
             <ros>
                 <remapping>/controller_manager/robot_description:=/robot_description</remapping>
             </ros>

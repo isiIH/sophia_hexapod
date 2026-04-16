@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-    <xacro:property name="joint_effort" value="15.0"/>  <!-- max torque -->
-    <xacro:property name="joint_velocity" value="2.792527"/>
-    <xacro:property name="joint_damping" value="0.1"/>
-    <xacro:property name="joint_friction" value="0.01"/>
+    <xacro:property name="joint_effort" value="2.0"/>    <!-- N·m: ~5× max static gravitational torque per leg -->
+    <xacro:property name="joint_velocity" value="6.28"/>  <!-- rad/s: ~1 rev/s, realistic servo limit -->
+    <xacro:property name="joint_damping" value="0.3"/>    <!-- N·m·s/rad: smooth deceleration without oscillatory buildup -->
+    <xacro:property name="joint_friction" value="0.1"/>   <!-- N·m: Coulomb friction prevents perturbation-driven creep -->
 
     <xacro:property name="coxa_link_mass" value="0.05"/>
     <xacro:property name="coxa_link_width" value="0.035"/>
@@ -22,9 +22,9 @@
     <xacro:property name="tibia_link_depth" value="0.005"/>
     <xacro:property name="tibia_sphere_radius" value="${tibia_link_height/2}"/>
 
-    <xacro:macro name="link_inertial" params="m w h d">
+    <xacro:macro name="link_inertial" params="m w h d *origin">
         <inertial>
-            <origin xyz="0 0 0" rpy="0 0 0"/>
+            <xacro:insert_block name="origin"/>
             <mass value="${m}"/>
             <inertia ixx="${(m/12) * (h*h + d*d)}" ixy="0.0" ixz="0.0"
                     iyy="${(m/12) * (w*w + d*d)}" iyz="0.0"
@@ -55,7 +55,9 @@
   <xacro:macro name="leg" params="prefix parent *origin">
 
     <link name="${prefix}coxa_link">
-      <xacro:link_inertial m="${coxa_link_mass}" w="${coxa_link_width}" h="${coxa_link_height}" d="${coxa_link_depth}"/>
+      <xacro:link_inertial m="${coxa_link_mass}" w="${coxa_link_width}" h="${coxa_link_height}" d="${coxa_link_depth}">
+        <origin xyz="${coxa_link_width/2} 0.0 0.0" rpy="0 0 0"/>
+      </xacro:link_inertial>
       
       <visual>
         <geometry>
@@ -74,7 +76,9 @@
     </link>
 
     <link name="${prefix}femur_link">
-      <xacro:link_inertial m="${femur_link_mass}" w="${femur_link_width}" h="${femur_link_height}" d="${femur_link_depth}"/>
+      <xacro:link_inertial m="${femur_link_mass}" w="${femur_link_width}" h="${femur_link_height}" d="${femur_link_depth}">
+        <origin xyz="${femur_link_width/2} 0.0 0.0" rpy="0 0 0"/>
+      </xacro:link_inertial>
       
       <visual>
         <geometry>
@@ -93,23 +97,29 @@
     </link>
 
     <link name="${prefix}tibia_link">
-      <xacro:link_inertial m="${tibia_link_mass}" w="${tibia_link_width}" h="${tibia_link_height}" d="${tibia_link_depth}"/>
+      <xacro:link_inertial m="${tibia_link_mass}" w="${tibia_link_width}" h="${tibia_link_height}" d="${tibia_link_depth}">
+        <origin xyz="${(tibia_link_width - tibia_sphere_radius)/2} 0.0 0.0" rpy="0 0 0"/>
+      </xacro:link_inertial>
       
       <visual>
-        <geometry>
-          <box size="${tibia_link_width} ${tibia_link_depth} ${tibia_link_height}"/>
-        </geometry>
-        <origin xyz="${tibia_link_width/2} 0.0 0.0" rpy="0 0 0"/>
-        <material name="black"/>
-      </visual>
-      
-      <collision name="${prefix}tibia_body_collision">
         <geometry>
           <box size="${tibia_link_width - tibia_sphere_radius} ${tibia_link_depth} ${tibia_link_height}"/>
         </geometry>
         <origin xyz="${(tibia_link_width - tibia_sphere_radius)/2} 0.0 0.0" rpy="0 0 0"/>
-      </collision>
+        <material name="black"/>
+      </visual>
 
+      <visual>
+        <geometry>
+          <sphere radius="${tibia_sphere_radius}"/> 
+        </geometry>
+        <origin xyz="${tibia_link_width - tibia_sphere_radius} 0.0 0.0" rpy="0 0 0"/>
+      </visual>
+      
+      <!-- tibia_body_collision (box) REMOVED: caused spurious asymmetric contacts
+           inducing yaw torque. Only the sphere at the tip makes ground contact.  -->
+
+      <!-- SOLE contact point: sphere at the foot tip -->
       <collision name="${prefix}tibia_foot_collision">
         <geometry>
           <sphere radius="${tibia_sphere_radius}"/> 
@@ -132,7 +142,7 @@
 
     <joint name="${prefix}coxa_joint" type="revolute">
       <axis xyz="0 0 1"/>
-      <limit effort="${joint_effort}" lower="-1.57" upper="1.57" velocity="${joint_velocity}"/>
+      <limit effort="${joint_effort}" lower="-1.0" upper="1.0" velocity="${joint_velocity}"/>
       <parent link="${prefix}base_motor_link"/>
       <child link="${prefix}coxa_link"/>
       <origin xyz="0 0 0" rpy="0 0 0"/>
@@ -141,7 +151,9 @@
 
     <joint name="${prefix}coxa_link_to_${prefix}femur_link" type="revolute">
       <axis xyz="0 1 0"/>
-      <limit effort="${joint_effort}" lower="-2.5" upper="2.5" velocity="${joint_velocity}"/>
+      <!-- lower=-1.85: swing apex analysis shows -1.796 rad needed at max diagonal speed. -->
+      <!-- Was -1.77 rad (-101.4°); joint was hitting stop during diagonal walks.          -->
+      <limit effort="${joint_effort}" lower="-1.85" upper="1.57" velocity="${joint_velocity}"/>
       <parent link="${prefix}coxa_link"/>
       <child link="${prefix}femur_link"/>
       <origin xyz="${coxa_link_width} 0 0" rpy="0 0 0"/>
@@ -150,7 +162,10 @@
 
     <joint name="${prefix}femur_link_to_${prefix}tibia_link" type="revolute">
       <axis xyz="0 1 0"/>
-      <limit effort="${joint_effort}" lower="-2.0" upper="2.0" velocity="${joint_velocity}"/>
+      <!-- upper=2.75 rad (157.6°): kinematic analysis shows max SWING APEX needs 2.667 rad. -->
+      <!-- Was 2.0 rad (114°): violated on EVERY step. Fixed to 2.5 still violated at apex. -->
+      <!-- 2.75 gives 5° margin above worst-case swing apex (2.667 rad for lm/lb legs).    -->
+      <limit effort="${joint_effort}" lower="-2.0" upper="2.75" velocity="${joint_velocity}"/>
       <parent link="${prefix}femur_link"/>
       <child link="${prefix}tibia_link"/>
       <origin xyz="${femur_link_width} 0 0" rpy="0 0 0"/>

@@ -38,7 +38,7 @@ class StateController(Node):
         )
 
         # Movement params
-        self.linear_limit = 0.07
+        self.linear_limit = 0.1
         self.angular_limit = np.pi / 36 # 5 degrees
         self.previous_btn = 0
 
@@ -62,11 +62,31 @@ class StateController(Node):
         twist = Twist()
 
         # Left Stick (Movement)
-        twist.linear.x = axes[1] * self.linear_limit 
-        twist.linear.y = axes[0] * self.linear_limit 
+        x_axis = axes[1]
+        y_axis = axes[0]
+        mag = np.sqrt(x_axis**2 + y_axis**2)
+        
+        # Deadzone & Minimum Step Size:
+        # Si el joystick se mueve un poco (mag > 0.1), asegurar un paso de al menos el 60% (0.6).
+        # Esto evita los pasos microscópicos y cambia la dinámica a "pasos grandes, pero lentos".
+        if mag > 0.1:
+            scaled_mag = 0.6 + 0.4 * min((mag - 0.1) / 0.9, 1.0)
+            x_axis = (x_axis / mag) * scaled_mag
+            y_axis = (y_axis / mag) * scaled_mag
+        else:
+            x_axis = 0.0
+            y_axis = 0.0
+
+        twist.linear.x = x_axis * self.linear_limit 
+        twist.linear.y = y_axis * self.linear_limit 
 
         # Right Stick (Rotation)
-        twist.angular.z = axes[3] * self.angular_limit
+        rot_val = axes[3]
+        if abs(rot_val) > 0.1:
+            scaled_rot = 0.6 + 0.4 * min((abs(rot_val) - 0.1) / 0.9, 1.0)
+            twist.angular.z = np.sign(rot_val) * scaled_rot * self.angular_limit
+        else:
+            twist.angular.z = 0.0
 
         self.movement_publisher.publish(twist)
 
