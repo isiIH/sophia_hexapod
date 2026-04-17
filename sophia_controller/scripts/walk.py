@@ -68,17 +68,21 @@ class WalkNode(Node):
         self.walk_controller()
 
     def walk_controller(self):
+        self.get_logger().info("Waiting for gz_ros2_control to initialize...")
+
+        # Wait 2s for gz_ros2_control to finish initializing all joints.
+        # Without this delay, the controller may command positions before hardware
+        # is ready, causing joints to snap to 0 and destabilize the robot at startup.
+        self.startup_timer = self.create_timer(2.0, self._on_startup_ready)
+
+    def _on_startup_ready(self):
+        self.startup_timer.cancel()
 
         self.get_logger().info("Send Standing Pose...")
-
-        # Stand-up
         joint_angles = self.spider.get_joint_angles()
-
         self.send_angles(joint_angles)
 
         self.get_logger().info("Init Walk Cycle...")
-
-        # Walk loop
         self.timer = self.create_timer(self.time_step, self.walk_loop)
     
     def walk_loop(self):

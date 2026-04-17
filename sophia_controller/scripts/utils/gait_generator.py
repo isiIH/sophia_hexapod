@@ -174,10 +174,10 @@ class GaitGenerator:
         speed_factor = max(mag / 0.1, mag_angular / (np.pi/36 * 3.0))
         speed_factor = np.clip(speed_factor, 0.0, 1.0)
         
-        # Wider dynamic range:
-        # speed_factor=0.0 → 2.0s cycle time (slow motion, precise positioning)
-        # speed_factor=1.0 → 0.6s cycle time (fast pacing)
-        self.cycle_duration = 2.0 - (1.4 * speed_factor)
+        # Cycle duration range: 1.2s (slow) → 0.8s (fast).
+        # Do NOT go below 0.8s: the Bullet contact solver needs enough steps per
+        # gait cycle to converge symmetrically, or yaw drift reappears.
+        self.cycle_duration = 1.2 - (0.4 * speed_factor)
 
         # Handle stop conditions / Return to stance exactly cleanly
         if mag < 1e-4 and mag_angular < 1e-4:

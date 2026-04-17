@@ -2,9 +2,9 @@
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
     <xacro:macro name="leg_gazebo_config" params="prefix">
-        <gazebo reference="${prefix}tibia_link">
-          <!-- BULLET FEATHERSTONE reads friction ONLY from <bullet> tag.       -->
-          <!-- <mu1>/<mu2> top-level tags and <ode><mu> are silently IGNORED.   -->
+        <!-- Reference the named collision directly so URDF→SDF places <surface>
+             inside the correct <collision> element and not under <link>. -->
+        <gazebo reference="${prefix}tibia_foot_collision">
           <surface>
             <bounce>
               <restitution_coefficient>0.0</restitution_coefficient>
@@ -12,9 +12,10 @@
             </bounce>
             <friction>
               <bullet>
-                <friction>0.5</friction>
-                <friction2>0.5</friction2>
-                <!-- rolling_friction MUST be 0 for sphere feet -->
+                <!-- Bullet Featherstone reads friction ONLY from <bullet> tag.  -->
+                <!-- mu1/mu2 top-level and <ode><mu> are silently IGNORED.       -->
+                <friction>0.3</friction>
+                <friction2>0.3</friction2>
                 <rolling_friction>0.0</rolling_friction>
               </bullet>
               <torsional>
@@ -51,9 +52,10 @@
     <gazebo>
         <plugin filename="gz_ros2_control-system" name="gz_ros2_control::GazeboSimROS2ControlPlugin">
             <parameters>$(find sophia_controller)/config/sophia_controllers.yaml</parameters>
-            <!-- P-gain 0.7: time_constant=~14ms. Tighter tracking than 0.5
-                 without the bounce of 1.0. -->
-            <position_proportional_gain>0.7</position_proportional_gain>
+            <!-- Internal P-gain: velocity = P × error × update_rate.
+                 At P=0.5, update_rate=100Hz: time_constant=20ms.
+                 1.0 was too aggressive and caused bouncing. 0.25 was too sluggish. -->
+            <position_proportional_gain>0.25</position_proportional_gain>
             <ros>
                 <remapping>/controller_manager/robot_description:=/robot_description</remapping>
             </ros>
