@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <robot xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-    <xacro:property name="joint_effort" value="2.0"/>    <!-- N·m: ~5× max static gravitational torque per leg -->
-    <xacro:property name="joint_velocity" value="6.28"/>  <!-- rad/s: ~1 rev/s, realistic servo limit -->
+    <xacro:property name="joint_effort" value="5.0"/>    <!-- N·m: ~5× max static gravitational torque per leg -->
+    <xacro:property name="joint_velocity" value="12"/>  <!-- rad/s: ~1 rev/s, realistic servo limit -->
     <xacro:property name="joint_damping" value="0.3"/>    <!-- N·m·s/rad: smooth deceleration without oscillatory buildup -->
     <xacro:property name="joint_friction" value="0.1"/>   <!-- N·m: Coulomb friction prevents perturbation-driven creep -->
 
