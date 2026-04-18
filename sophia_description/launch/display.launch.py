@@ -58,6 +58,13 @@ def generate_launch_description():
     #     name='joint_state_publisher'
     # )
 
+    node_static_tf_gazebo = Node(
+        package='tf2_ros',
+        executable='static_transform_publisher',
+        name='odom_to_base_footprint_gazebo',
+        arguments=['0', '0', '-0.15', '0', '0', '0', 'odom', 'base_footprint']
+    )
+
     # Nodo: Joint State Publisher GUI (Para mover las patas con barritas)
     node_joint_state_publisher_gui = Node(
         condition=IfCondition(use_rviz_gui),
@@ -85,6 +92,7 @@ def generate_launch_description():
     # ld.add_action(node_joint_state_publisher)
     ld.add_action(node_joint_state_publisher_gui)
     ld.add_action(node_robot_state_publisher)
+    ld.add_action(node_static_tf_gazebo)
     ld.add_action(node_rviz)
 
     return ld

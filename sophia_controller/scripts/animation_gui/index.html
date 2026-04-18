@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sophia Hexapod — Animation Editor</title>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
+  <style>
+    /* ==================== CSS Reset & Variables ==================== */
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    :root {
+      --bg-primary: #0f0f13;
+      --bg-secondary: #16161d;
+      --bg-tertiary: #1e1e28;
+      --bg-card: #1a1a24;
+      --bg-hover: #252533;
+      --border: #2a2a3a;
+      --border-focus: #6c5ce7;
+      --text-primary: #e8e8f0;
+      --text-secondary: #8888a0;
+      --text-muted: #555566;
+      --accent: #6c5ce7;
+      --accent-glow: rgba(108, 92, 231, 0.3);
+      --success: #00d2a0;
+      --warning: #ffa726;
+      --danger: #ef5350;
+      --info: #42a5f5;
+      --kf-color: #ffd700;
+      --kf-selected: #ff9500;
+      --slider-track: #333344;
+      --slider-fill: #6c5ce7;
+      --font-sans: 'Inter', -apple-system, sans-serif;
+      --font-mono: 'JetBrains Mono', monospace;
+      --radius: 8px;
+      --radius-lg: 12px;
+      --transition: 0.2s ease;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--bg-primary);
+      color: var(--text-primary);
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* ==================== Header ==================== */
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px 16px;
+      background: var(--bg-secondary);
+      border-bottom: 1px solid var(--border);
+      z-index: 100;
+      flex-shrink: 0;
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      font-size: 15px;
+      letter-spacing: 0.5px;
+    }
+
+    .logo svg {
+      width: 24px;
+      height: 24px;
+    }
+
+    .logo span {
+      background: linear-gradient(135deg, var(--accent), #a78bfa);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .connection-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--text-secondary);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--danger);
+      transition: var(--transition);
+    }
+
+    .status-dot.connected {
+      background: var(--success);
+      box-shadow: 0 0 8px var(--success);
+    }
+
+    /* Playback Controls */
+    .playback-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .playback-controls button {
+      width: 34px;
+      height: 34px;
+      border: 1px solid var(--border);
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border-radius: var(--radius);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: var(--transition);
+      font-size: 14px;
+    }
+
+    .playback-controls button:hover {
+      background: var(--bg-hover);
+      border-color: var(--accent);
+    }
+
+    .playback-controls button.active {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .play-mode-select,
+    .speed-select {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      padding: 4px 8px;
+      border-radius: var(--radius);
+      font-size: 12px;
+      font-family: var(--font-sans);
+      cursor: pointer;
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .btn {
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      border-radius: var(--radius);
+      font-size: 12px;
+      font-family: var(--font-sans);
+      cursor: pointer;
+      transition: var(--transition);
+      font-weight: 500;
+    }
+
+    .btn:hover {
+      background: var(--bg-hover);
+      border-color: var(--accent);
+    }
+
+    .btn-accent {
+      background: var(--accent);
+      border-color: var(--accent);
+    }
+
+    .btn-accent:hover {
+      background: #5b4bd4;
+    }
+
+    .btn-danger {
+      border-color: var(--danger);
+      color: var(--danger);
+    }
+
+    .btn-danger:hover {
+      background: rgba(239, 83, 80, 0.15);
+    }
+
+    /* ==================== Main Layout ==================== */
+    .main-layout {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    /* ==================== Left Panel ==================== */
+    .panel-left {
+      width: 300px;
+      min-width: 280px;
+      border-right: 1px solid var(--border);
+      background: var(--bg-secondary);
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    .panel-section {
+      border-bottom: 1px solid var(--border);
+    }
+
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--text-secondary);
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .panel-header:hover {
+      color: var(--text-primary);
+    }
+
+    .panel-content {
+      padding: 6px 14px 14px;
+    }
+
+    /* Slider rows */
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .slider-label {
+      width: 38px;
+      font-size: 11px;
+      font-weight: 500;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+      text-align: right;
+      flex-shrink: 0;
+    }
+
+    .slider-input {
+      flex: 1;
+      -webkit-appearance: none;
+      appearance: none;
+      height: 4px;
+      border-radius: 2px;
+      background: var(--slider-track);
+      outline: none;
+      cursor: pointer;
+    }
+
+    .slider-input::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: var(--accent);
+      cursor: pointer;
+      box-shadow: 0 0 6px var(--accent-glow);
+      transition: var(--transition);
+    }
+
+    .slider-input::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+      box-shadow: 0 0 12px var(--accent-glow);
+    }
+
+    .slider-value {
+      width: 62px;
+      font-size: 11px;
+      font-family: var(--font-mono);
+      text-align: center;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-radius: 4px;
+      padding: 3px 4px;
+      flex-shrink: 0;
+    }
+
+    .slider-value:focus {
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    /* Leg selector */
+    .leg-selector {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 4px;
+      margin-bottom: 10px;
+    }
+
+    .leg-btn {
+      padding: 6px 4px;
+      border: 1px solid var(--border);
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+      border-radius: var(--radius);
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--font-mono);
+      cursor: pointer;
+      transition: var(--transition);
+      text-align: center;
+    }
+
+    .leg-btn:hover {
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+
+    .leg-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    /* ==================== Center Panel ==================== */
+    .panel-center {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Values Display */
+    .values-display {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px;
+    }
+
+    .values-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .value-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px;
+      transition: var(--transition);
+    }
+
+    .value-card:hover {
+      border-color: var(--accent);
+    }
+
+    .value-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .value-card-title {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--accent);
+    }
+
+    .value-card-subtitle {
+      font-size: 10px;
+      color: var(--text-muted);
+    }
+
+    .value-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 2px 0;
+    }
+
+    .value-name {
+      font-size: 10px;
+      color: var(--text-secondary);
+      font-family: var(--font-mono);
+    }
+
+    .value-num {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+      font-weight: 500;
+    }
+
+    /* Body values section */
+    .body-values-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+
+    .body-values-grid {
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      gap: 6px;
+    }
+
+    .body-val-item {
+      text-align: center;
+    }
+
+    .body-val-label {
+      font-size: 9px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      text-transform: uppercase;
+    }
+
+    .body-val-num {
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: var(--accent);
+      font-weight: 600;
+      margin-top: 2px;
+    }
+
+    /* ==================== Timeline (Bottom) ==================== */
+    .timeline-container {
+      background: var(--bg-secondary);
+      border-top: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+
+    .timeline-toolbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 6px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .timeline-toolbar-left {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .timeline-toolbar-right {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .timeline-info {
+      font-size: 11px;
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+    }
+
+    .timeline-track-wrapper {
+      position: relative;
+      height: 70px;
+      padding: 10px 14px;
+      overflow-x: auto;
+    }
+
+    .timeline-track {
+      position: relative;
+      height: 50px;
+      background: var(--bg-tertiary);
+      border-radius: var(--radius);
+      border: 1px solid var(--border);
+      min-width: 100%;
+    }
+
+    .timeline-ruler {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 16px;
+      border-bottom: 1px solid var(--border);
+      overflow: hidden;
+    }
+
+    .timeline-ruler-tick {
+      position: absolute;
+      top: 0;
+      font-size: 9px;
+      color: var(--text-muted);
+      font-family: var(--font-mono);
+      transform: translateX(-50%);
+      line-height: 16px;
+    }
+
+    .timeline-playhead {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--danger);
+      z-index: 10;
+      pointer-events: none;
+      transition: left 0.05s linear;
+    }
+
+    .timeline-playhead::before {
+      content: '';
+      position: absolute;
+      top: -2px;
+      left: -4px;
+      width: 0;
+      height: 0;
+      border-left: 5px solid transparent;
+      border-right: 5px solid transparent;
+      border-top: 6px solid var(--danger);
+    }
+
+    .kf-marker {
+      position: absolute;
+      top: 18px;
+      width: 20px;
+      height: 20px;
+      margin-left: -10px;
+      transform: rotate(45deg);
+      background: var(--kf-color);
+      border: 2px solid rgba(0, 0, 0, 0.3);
+      cursor: pointer;
+      transition: var(--transition);
+      z-index: 5;
+    }
+
+    .kf-marker:hover {
+      transform: rotate(45deg) scale(1.2);
+      box-shadow: 0 0 10px var(--kf-color);
+      z-index: 20;
+    }
+
+    .kf-marker.selected {
+      background: var(--kf-selected);
+      box-shadow: 0 0 12px var(--kf-selected);
+    }
+
+    .kf-label {
+      position: absolute;
+      top: 40px;
+      font-size: 9px;
+      font-family: var(--font-mono);
+      color: var(--text-secondary);
+      transform: translateX(-50%);
+      white-space: nowrap;
+      pointer-events: none;
+    }
+
+    /* ==================== Easing / Keyframe Detail Panel ==================== */
+    .kf-detail-panel {
+      display: none;
+      padding: 8px 14px 10px;
+      border-top: 1px solid var(--border);
+      background: var(--bg-tertiary);
+    }
+
+    .kf-detail-panel.visible {
+      display: flex;
+      gap: 14px;
+      align-items: flex-start;
+    }
+
+    .kf-detail-col {
+      flex: 1;
+    }
+
+    .kf-detail-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      margin-bottom: 6px;
+    }
+
+    .easing-buttons {
+      display: flex;
+      gap: 4px;
+      flex-wrap: wrap;
+    }
+
+    .easing-btn {
+      padding: 4px 10px;
+      font-size: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg-secondary);
+      color: var(--text-secondary);
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: var(--font-mono);
+      transition: var(--transition);
+    }
+
+    .easing-btn:hover {
+      border-color: var(--accent);
+      color: var(--text-primary);
+    }
+
+    .easing-btn.active {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: white;
+    }
+
+    .duration-input {
+      width: 70px;
+      padding: 4px 8px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      color: var(--text-primary);
+      border-radius: 4px;
+      font-family: var(--font-mono);
+      font-size: 12px;
+    }
+
+    .duration-input:focus {
+      border-color: var(--accent);
+      outline: none;
+    }
+
+    /* Easing curve preview */
+    .curve-canvas {
+      width: 120px;
+      height: 80px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+    }
+
+    /* ==================== Right Panel ==================== */
+    .panel-right {
+      width: 220px;
+      min-width: 200px;
+      border-left: 1px solid var(--border);
+      background: var(--bg-secondary);
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+
+    /* Export modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.7);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .modal-overlay.visible {
+      display: flex;
+    }
+
+    .modal {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      width: 700px;
+      max-height: 80vh;
+      overflow-y: auto;
+      padding: 20px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .modal-title {
+      font-size: 16px;
+      font-weight: 600;
+    }
+
+    .modal-close {
+      background: none;
+      border: none;
+      color: var(--text-secondary);
+      font-size: 20px;
+      cursor: pointer;
+    }
+
+    .modal-close:hover {
+      color: var(--text-primary);
+    }
+
+    .code-output {
+      width: 100%;
+      height: 400px;
+      background: var(--bg-primary);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--success);
+      font-family: var(--font-mono);
+      font-size: 12px;
+      padding: 12px;
+      resize: vertical;
+    }
+
+    /* ==================== Scrollbar ==================== */
+    ::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: var(--border);
+      border-radius: 3px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--text-muted);
+    }
+
+    /* ==================== Animations ==================== */
+    @keyframes pulse-glow {
+
+      0%,
+      100% {
+        box-shadow: 0 0 4px var(--accent-glow);
+      }
+
+      50% {
+        box-shadow: 0 0 12px var(--accent-glow);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ==================== HEADER ==================== -->
+  <header>
+    <div class="logo">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="12" cy="12" r="3" fill="var(--accent)" />
+        <line x1="12" y1="3" x2="5" y2="1" stroke="var(--accent)" />
+        <line x1="12" y1="3" x2="19" y2="1" stroke="var(--accent)" />
+        <line x1="12" y1="12" x2="3" y2="8" stroke="var(--accent)" />
+        <line x1="12" y1="12" x2="21" y2="8" stroke="var(--accent)" />
+        <line x1="12" y1="21" x2="5" y2="23" stroke="var(--accent)" />
+        <line x1="12" y1="21" x2="19" y2="23" stroke="var(--accent)" />
+      </svg>
+      <span>SOPHIA ANIMATOR</span>
+    </div>
+
+    <div class="playback-controls">
+      <button id="btn-stop" title="Stop">⏹</button>
+      <button id="btn-play" title="Play">▶</button>
+      <button id="btn-pause" title="Pause">⏸</button>
+      <select id="play-mode" class="play-mode-select" title="Play mode">
+        <option value="once">Once</option>
+        <option value="loop">Loop</option>
+        <option value="pingpong">Ping-Pong</option>
+      </select>
+      <select id="play-speed" class="speed-select" title="Speed">
+        <option value="0.25">0.25x</option>
+        <option value="0.5">0.5x</option>
+        <option value="1" selected>1x</option>
+        <option value="1.5">1.5x</option>
+        <option value="2">2x</option>
+      </select>
+    </div>
+
+    <div class="header-actions">
+      <div class="connection-status">
+        <div class="status-dot" id="conn-dot"></div>
+        <span id="conn-text">Disconnected</span>
+      </div>
+      <button class="btn" id="btn-home">⌂ Home</button>
+      <button class="btn" id="btn-import">⬆ Import</button>
+      <button class="btn btn-accent" id="btn-export">⬇ Export</button>
+    </div>
+  </header>
+
+  <!-- ==================== MAIN LAYOUT ==================== -->
+  <div class="main-layout">
+
+    <!-- LEFT: Pose Controls -->
+    <div class="panel-left">
+
+      <!-- Body Control -->
+      <div class="panel-section">
+        <div class="panel-header">🔲 Body Pose (6 DOF)</div>
+        <div class="panel-content" id="body-sliders">
+          <!-- Generated by JS -->
+        </div>
+      </div>
+
+      <!-- Leg Control -->
+      <div class="panel-section">
+        <div class="panel-header">🦿 Leg Control</div>
+        <div class="panel-content">
+          <div class="leg-selector" id="leg-selector">
+            <!-- Generated by JS -->
+          </div>
+          <div id="leg-sliders">
+            <!-- Generated by JS -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- CENTER: Values Display -->
+    <div class="panel-center">
+      <div class="values-display">
+        <!-- Body values -->
+        <div class="body-values-card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-size:11px;font-weight:600;color:var(--accent)">BODY CENTER POSITION</span>
+          </div>
+          <div class="body-values-grid" id="body-values">
+            <!-- Generated by JS -->
+          </div>
+        </div>
+
+        <!-- Leg values -->
+        <div class="values-grid" id="leg-values">
+          <!-- Generated by JS -->
+        </div>
+      </div>
+
+      <!-- Timeline -->
+      <div class="timeline-container">
+        <div class="timeline-toolbar">
+          <div class="timeline-toolbar-left">
+            <button class="btn" id="btn-kf-add">+ Keyframe</button>
+            <button class="btn btn-danger" id="btn-kf-delete">✕ Delete</button>
+            <button class="btn" id="btn-kf-update">↻ Update KF</button>
+          </div>
+          <div class="timeline-toolbar-right">
+            <span class="timeline-info" id="timeline-time">0.000s / 0.000s</span>
+          </div>
+        </div>
+        <div class="timeline-track-wrapper" id="timeline-wrapper">
+          <div class="timeline-track" id="timeline-track">
+            <div class="timeline-ruler" id="timeline-ruler"></div>
+            <div class="timeline-playhead" id="playhead" style="left:0"></div>
+            <!-- Keyframe markers inserted by JS -->
+          </div>
+        </div>
+        <div class="kf-detail-panel" id="kf-detail">
+          <div class="kf-detail-col">
+            <div class="kf-detail-label">Duration (s)</div>
+            <input type="number" class="duration-input" id="kf-duration" value="1.0" min="0.05" step="0.05">
+          </div>
+          <div class="kf-detail-col">
+            <div class="kf-detail-label">Trajectory (Path)</div>
+            <select id="kf-trajectory" class="duration-input" style="width:100px;font-size:11px">
+              <option value="linear">Linear</option>
+              <option value="bezier">Bezier Step</option>
+            </select>
+          </div>
+          <div class="kf-detail-col">
+            <div class="kf-detail-label">Easing (Time)</div>
+            <div class="easing-buttons" id="easing-btns">
+              <button class="easing-btn" data-ease="linear">Linear</button>
+              <button class="easing-btn active" data-ease="ease-in">Ease In</button>
+              <button class="easing-btn" data-ease="ease-out">Ease Out</button>
+              <button class="easing-btn" data-ease="ease-in-out">In-Out</button>
+            </div>
+          </div>
+          <div class="kf-detail-col">
+            <div class="kf-detail-label">Curve Preview</div>
+            <canvas class="curve-canvas" id="curve-canvas" width="120" height="80"></canvas>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Joint Angles -->
+    <div class="panel-right">
+      <div class="panel-section">
+        <div class="panel-header">📐 Joint Angles (°)</div>
+        <div class="panel-content" id="joint-angles">
+          <!-- Generated by JS -->
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ==================== EXPORT MODAL ==================== -->
+  <div class="modal-overlay" id="export-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">Export Animation</span>
+        <button class="modal-close" id="modal-close">✕</button>
+      </div>
+      <div style="margin-bottom:10px;font-size:12px;color:#888">
+        Keyframes: <span id="export-keyframes-count">0</span> <br> Total Duration: <span id="export-total-duration">0.000</span>s
+      </div>
+      <textarea class="code-output" id="code-output" readonly></textarea>
+      <div style="margin-top:10px;display:flex;gap:8px">
+        <button class="btn btn-accent" id="btn-copy-code">📋 Copy to Clipboard</button>
+        <button class="btn" id="btn-export-json">💾 Export JSON</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hidden file input for import -->
+  <input type="file" id="file-import" accept=".json" style="display:none">
+
+  <!-- ==================== JAVASCRIPT ==================== -->
+  <script>
+    // ==================== HTTP API CLIENT ====================
+    const API_BASE = window.location.origin;
+
+    async function sendCmd(action, payload = {}) {
+      try {
+        await fetch(`${API_BASE}/api/cmd`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action, payload })
+        });
+      } catch (e) {
+        // Connection lost — ignore, polling will update status
+      }
+    }
+
+    let apiConnected = false;
+
+    async function pollState() {
+      try {
+        const res = await fetch(`${API_BASE}/api/state`);
+        if (res.ok) {
+          const state = await res.json();
+          if (!apiConnected) {
+            apiConnected = true;
+            updateConnection(true);
+          }
+          onStateUpdate(state);
+        }
+      } catch (e) {
+        if (apiConnected) {
+          apiConnected = false;
+          updateConnection(false);
+        }
+      }
+    }
+
+    // Poll state at 10Hz
+    setInterval(pollState, 100);
+
+    // ==================== APP STATE ====================
+    let appState = {
+      body: { x: 0, y: 0, z: 0, roll: 0, pitch: 0, yaw: 0 },
+      legs: [],
+      home_legs: [],
+      joint_angles_deg: [],
+      leg_names: ['RF', 'RM', 'RB', 'LF', 'LM', 'LB'],
+      keyframes: [],
+      selected_kf: -1,
+      playing: false,
+      play_time: 0,
+      total_duration: 0,
+    };
+
+    let selectedLeg = 0;
+    let selectedKfIdx = -1;
+    let suppressSliderUpdate = false;
+
+    // ==================== UI INITIALIZATION ====================
+    function initUI() {
+      initBodySliders();
+      initLegSelector();
+      initLegSliders();
+      initJointAngleDisplay();
+      initBodyValuesDisplay();
+      initLegValuesDisplay();
+      initEventListeners();
+    }
+
+    const BODY_PARAMS = [
+      { key: 'x', label: 'X (m)', min: -0.05, max: 0.05, step: 0.001 },
+      { key: 'y', label: 'Y (m)', min: -0.05, max: 0.05, step: 0.001 },
+      { key: 'z', label: 'Z (m)', min: -0.06, max: 0.06, step: 0.001 },
+      { key: 'roll', label: 'Roll', min: -0.5, max: 0.5, step: 0.01 },
+      { key: 'pitch', label: 'Pitch', min: -0.5, max: 0.5, step: 0.01 },
+      { key: 'yaw', label: 'Yaw', min: -0.5, max: 0.5, step: 0.01 },
+    ];
+
+    const LEG_PARAMS = [
+      { key: 0, label: 'X (m)', min: 0.02, max: 0.15, step: 0.001 },
+      { key: 1, label: 'Y (m)', min: -0.06, max: 0.06, step: 0.001 },
+      { key: 2, label: 'Z (m)', min: -0.1, max: 0.02, step: 0.001 },
+    ];
+
+    const LEG_ANGLE_PARAMS = [
+      { key: 0, label: 'Coxa°', min: -57, max: 57, step: 1 },
+      { key: 1, label: 'Femur°', min: -106, max: 90, step: 1 },
+      { key: 2, label: 'Tibia°', min: -114, max: 157, step: 1 },
+    ];
+
+    function initBodySliders() {
+      const container = document.getElementById('body-sliders');
+      container.innerHTML = BODY_PARAMS.map(p => `
+    <div class="slider-row">
+      <span class="slider-label">${p.label}</span>
+      <input type="range" class="slider-input" id="body-${p.key}"
+        min="${p.min}" max="${p.max}" step="${p.step}" value="0">
+      <input type="text" class="slider-value" id="body-${p.key}-val" value="0.000">
+    </div>
+  `).join('');
+
+      BODY_PARAMS.forEach(p => {
+        const slider = document.getElementById(`body-${p.key}`);
+        const valInput = document.getElementById(`body-${p.key}-val`);
+        slider.addEventListener('input', () => {
+          suppressSliderUpdate = true;
+          const v = parseFloat(slider.value);
+          valInput.value = v.toFixed(3);
+          appState.body[p.key] = v;
+          sendBodyPose();
+          setTimeout(() => suppressSliderUpdate = false, 150);
+        });
+        valInput.addEventListener('change', () => {
+          suppressSliderUpdate = true;
+          const v = parseFloat(valInput.value) || 0;
+          slider.value = v;
+          appState.body[p.key] = v;
+          sendBodyPose();
+          setTimeout(() => suppressSliderUpdate = false, 150);
+        });
+      });
+    }
+
+    function initLegSelector() {
+      const container = document.getElementById('leg-selector');
+      const names = ['RF', 'RM', 'RB', 'LF', 'LM', 'LB'];
+      container.innerHTML = names.map((n, i) => `
+    <button class="leg-btn ${i === 0 ? 'active' : ''}" data-leg="${i}">${n}</button>
+  `).join('');
+      container.querySelectorAll('.leg-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          selectedLeg = parseInt(btn.dataset.leg);
+          container.querySelectorAll('.leg-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          updateLegSliders();
+        });
+      });
+    }
+
+    function initLegSliders() {
+      const container = document.getElementById('leg-sliders');
+      let html = '<div style="margin-bottom:8px;font-size:10px;color:var(--text-secondary)">Cartesian Position</div>';
+      html += LEG_PARAMS.map(p => `
+    <div class="slider-row">
+      <span class="slider-label">${p.label}</span>
+      <input type="range" class="slider-input" id="leg-${p.key}"
+        min="${p.min}" max="${p.max}" step="${p.step}" value="0">
+      <input type="text" class="slider-value" id="leg-${p.key}-val" value="0.000">
+    </div>
+  `).join('');
+      html += '<div style="margin:10px 0 8px;font-size:10px;color:var(--text-secondary)">Joint Angles</div>';
+      html += LEG_ANGLE_PARAMS.map(p => `
+    <div class="slider-row">
+      <span class="slider-label">${p.label}</span>
+      <input type="range" class="slider-input" id="leg-ang-${p.key}"
+        min="${p.min}" max="${p.max}" step="${p.step}" value="0">
+      <input type="text" class="slider-value" id="leg-ang-${p.key}-val" value="0.0">
+    </div>
+  `).join('');
+      container.innerHTML = html;
+
+      LEG_PARAMS.forEach(p => {
+        const slider = document.getElementById(`leg-${p.key}`);
+        const valInput = document.getElementById(`leg-${p.key}-val`);
+        const updateFn = (vStr) => {
+          suppressSliderUpdate = true;
+          const v = parseFloat(vStr) || 0;
+          slider.value = v;
+          valInput.value = v.toFixed(4);
+          if (appState.legs[selectedLeg]) {
+            appState.legs[selectedLeg][p.key] = v;
+            sendLegPos(selectedLeg);
+          }
+          setTimeout(() => suppressSliderUpdate = false, 150);
+        };
+        slider.addEventListener('input', () => updateFn(slider.value));
+        valInput.addEventListener('change', () => updateFn(valInput.value));
+      });
+
+      LEG_ANGLE_PARAMS.forEach(p => {
+        const slider = document.getElementById(`leg-ang-${p.key}`);
+        const valInput = document.getElementById(`leg-ang-${p.key}-val`);
+        const updateFn = (vStr) => {
+          suppressSliderUpdate = true;
+          const v = parseFloat(vStr) || 0;
+          slider.value = v;
+          valInput.value = v.toFixed(1);
+          if (appState.joint_angles_deg && appState.joint_angles_deg[selectedLeg]) {
+            appState.joint_angles_deg[selectedLeg][p.key] = v;
+            sendCmd('set_leg_angles', { index: selectedLeg, angles: appState.joint_angles_deg[selectedLeg] });
+          }
+          setTimeout(() => suppressSliderUpdate = false, 150);
+        };
+        slider.addEventListener('input', () => updateFn(slider.value));
+        valInput.addEventListener('change', () => updateFn(valInput.value));
+      });
+    }
+
+    function updateLegSliders() {
+      if (suppressSliderUpdate) return;
+      const leg = appState.legs[selectedLeg];
+      if (leg) {
+        LEG_PARAMS.forEach(p => {
+          document.getElementById(`leg-${p.key}`).value = leg[p.key];
+          document.getElementById(`leg-${p.key}-val`).value = leg[p.key].toFixed(4);
+        });
+      }
+      const angs = appState.joint_angles_deg ? appState.joint_angles_deg[selectedLeg] : null;
+      if (angs) {
+        LEG_ANGLE_PARAMS.forEach(p => {
+          document.getElementById(`leg-ang-${p.key}`).value = angs[p.key];
+          document.getElementById(`leg-ang-${p.key}-val`).value = angs[p.key].toFixed(1);
+        });
+      }
+    }
+
+    function updateBodySliders() {
+      if (suppressSliderUpdate) return;
+      BODY_PARAMS.forEach(p => {
+        document.getElementById(`body-${p.key}`).value = appState.body[p.key];
+        document.getElementById(`body-${p.key}-val`).value = appState.body[p.key].toFixed(3);
+      });
+    }
+
+    function initJointAngleDisplay() {
+      const container = document.getElementById('joint-angles');
+      const names = ['RF', 'RM', 'RB', 'LF', 'LM', 'LB'];
+      const joints = ['Coxa', 'Femur', 'Tibia'];
+      container.innerHTML = names.map((n, i) => `
+    <div class="value-card" style="margin-bottom:6px">
+      <div class="value-card-header">
+        <span class="value-card-title">${n}</span>
+      </div>
+      ${joints.map((j, ji) => `
+        <div class="value-row">
+          <span class="value-name">${j}</span>
+          <span class="value-num" id="ja-${i}-${ji}">0.00°</span>
+        </div>
+      `).join('')}
+    </div>
+  `).join('');
+    }
+
+    function initBodyValuesDisplay() {
+      const container = document.getElementById('body-values');
+      const keys = ['x', 'y', 'z', 'roll', 'pitch', 'yaw'];
+      container.innerHTML = keys.map(k => `
+    <div class="body-val-item">
+      <div class="body-val-label">${k}</div>
+      <div class="body-val-num" id="bv-${k}">0.000</div>
+    </div>
+  `).join('');
+    }
+
+    function initLegValuesDisplay() {
+      const container = document.getElementById('leg-values');
+      const names = ['RF', 'RM', 'RB', 'LF', 'LM', 'LB'];
+      container.innerHTML = names.map((n, i) => `
+    <div class="value-card">
+      <div class="value-card-header">
+        <span class="value-card-title">${n}</span>
+        <span class="value-card-subtitle">foot pos</span>
+      </div>
+      <div class="value-row"><span class="value-name">X</span><span class="value-num" id="lp-${i}-0">0.000</span></div>
+      <div class="value-row"><span class="value-name">Y</span><span class="value-num" id="lp-${i}-1">0.000</span></div>
+      <div class="value-row"><span class="value-name">Z</span><span class="value-num" id="lp-${i}-2">0.000</span></div>
+    </div>
+  `).join('');
+    }
+
+    // ==================== SEND COMMANDS ====================
+    function sendBodyPose() {
+      sendCmd('set_body', appState.body);
+    }
+
+    function sendLegPos(idx) {
+      sendCmd('set_leg', { index: idx, pos: appState.legs[idx] });
+    }
+
+    // ==================== STATE RECEIVE / UPDATE ====================
+    function onStateUpdate(state) {
+      appState = { ...appState, ...state };
+
+      // Update body sliders
+      updateBodySliders();
+      updateLegSliders();
+
+      // Body values
+      ['x', 'y', 'z', 'roll', 'pitch', 'yaw'].forEach(k => {
+        const el = document.getElementById(`bv-${k}`);
+        if (el) el.textContent = (appState.body[k] || 0).toFixed(4);
+      });
+
+      // Joint angles
+      if (appState.joint_angles_deg) {
+        appState.joint_angles_deg.forEach((leg, i) => {
+          leg.forEach((a, j) => {
+            const el = document.getElementById(`ja-${i}-${j}`);
+            if (el) el.textContent = a.toFixed(2) + '°';
+          });
+        });
+      }
+
+      // Leg positions
+      if (appState.legs) {
+        appState.legs.forEach((pos, i) => {
+          pos.forEach((v, j) => {
+            const el = document.getElementById(`lp-${i}-${j}`);
+            if (el) el.textContent = v.toFixed(5);
+          });
+        });
+      }
+
+      // Timeline
+      updateTimeline();
+
+      // Update export modal text
+      document.getElementById('export-keyframes-count').textContent = appState.keyframes.length;
+      document.getElementById('export-total-duration').textContent = appState.total_duration.toFixed(3);
+
+      // Playback state
+      document.getElementById('btn-play').classList.toggle('active', appState.playing);
+      document.getElementById('timeline-time').textContent =
+        `${appState.play_time.toFixed(3)}s / ${appState.total_duration.toFixed(3)}s`;
+    }
+
+    // ==================== CONNECTION STATUS ====================
+    function updateConnection(connected) {
+      document.getElementById('conn-dot').classList.toggle('connected', connected);
+      document.getElementById('conn-text').textContent = connected ? 'Connected' : 'Disconnected';
+    }
+
+    // ==================== TIMELINE ====================
+    let lastTimelineState = '';
+
+    function updateTimeline() {
+      const track = document.getElementById('timeline-track');
+      const ruler = document.getElementById('timeline-ruler');
+      const wrapper = document.getElementById('timeline-wrapper');
+
+      const kfs = appState.keyframes || [];
+      const totalDur = appState.total_duration || 1;
+      const trackWidth = Math.max(wrapper.clientWidth - 28, 400);
+      track.style.width = trackWidth + 'px';
+
+      const currentState = JSON.stringify({ k: kfs, d: totalDur, s: selectedKfIdx });
+      if (currentState !== lastTimelineState) {
+        lastTimelineState = currentState;
+
+        // Remove old markers
+        track.querySelectorAll('.kf-marker, .kf-label').forEach(el => el.remove());
+
+        // Ruler ticks
+        ruler.innerHTML = '';
+        const tickInterval = totalDur > 5 ? 1.0 : totalDur > 2 ? 0.5 : 0.25;
+        for (let t = 0; t <= totalDur + 0.01; t += tickInterval) {
+          const pct = totalDur > 0 ? (t / totalDur) * 100 : 0;
+          const tick = document.createElement('span');
+          tick.className = 'timeline-ruler-tick';
+          tick.style.left = pct + '%';
+          tick.textContent = t.toFixed(1) + 's';
+          ruler.appendChild(tick);
+        }
+
+        // Keyframe markers
+        let accumulated = 0;
+        kfs.forEach((kf, i) => {
+          if (i > 0) accumulated += kf.duration;
+          const pct = totalDur > 0 ? (accumulated / totalDur) * 100 : (i / Math.max(kfs.length - 1, 1)) * 100;
+
+          const marker = document.createElement('div');
+          marker.className = 'kf-marker' + (i === selectedKfIdx ? ' selected' : '');
+          marker.style.left = pct + '%';
+          marker.title = `KF ${i} — ${accumulated.toFixed(2)}s`;
+          marker.addEventListener('click', () => selectKeyframe(i));
+          track.appendChild(marker);
+
+          const label = document.createElement('span');
+          label.className = 'kf-label';
+          label.style.left = pct + '%';
+          label.textContent = `${i}`;
+          track.appendChild(label);
+        });
+      }
+
+      // Playhead
+      const playhead = document.getElementById('playhead');
+      if (totalDur > 0) {
+        playhead.style.left = ((appState.play_time / totalDur) * 100) + '%';
+      } else {
+        playhead.style.left = '0%';
+      }
+
+      // KF detail panel
+      const detail = document.getElementById('kf-detail');
+      if (selectedKfIdx >= 0 && selectedKfIdx < kfs.length) {
+        detail.classList.add('visible');
+        const kf = kfs[selectedKfIdx];
+        const durInput = document.getElementById('kf-duration');
+        const trajSel = document.getElementById('kf-trajectory');
+        if (document.activeElement !== durInput) {
+          durInput.value = kf.duration;
+        }
+        if (document.activeElement !== trajSel) {
+          trajSel.value = kf.trajectory || 'linear';
+        }
+        document.querySelectorAll('.easing-btn').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.ease === kf.easing);
+        });
+        drawEasingCurve(kf.easing, kf.bezier_p1, kf.bezier_p2);
+      } else {
+        detail.classList.remove('visible');
+      }
+    }
+
+    function selectKeyframe(idx) {
+      selectedKfIdx = idx;
+      sendCmd('kf_select', { index: idx });
+    }
+
+    function drawEasingCurve(easing, p1, p2) {
+      const canvas = document.getElementById('curve-canvas');
+      const ctx = canvas.getContext('2d');
+      const w = canvas.width, h = canvas.height;
+      const pad = 8;
+
+      ctx.clearRect(0, 0, w, h);
+
+      // Grid
+      ctx.strokeStyle = 'rgba(255,255,255,0.05)';
+      ctx.lineWidth = 1;
+      for (let i = 0; i <= 4; i++) {
+        const x = pad + (i / 4) * (w - 2 * pad);
+        ctx.beginPath(); ctx.moveTo(x, pad); ctx.lineTo(x, h - pad); ctx.stroke();
+        const y = pad + (i / 4) * (h - 2 * pad);
+        ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(w - pad, y); ctx.stroke();
+      }
+
+      // Easing curve
+      ctx.strokeStyle = '#6c5ce7';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      const steps = 60;
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        let v;
+        switch (easing) {
+          case 'linear': v = t; break;
+          case 'ease-in': v = t * t * t; break;
+          case 'ease-out': v = 1 - Math.pow(1 - t, 3); break;
+          case 'ease-in-out': v = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; break;
+          case 'custom': v = cubicBezierEase(t, p1[0], p1[1], p2[0], p2[1]); break;
+          default: v = t;
+        }
+        const px = pad + t * (w - 2 * pad);
+        const py = (h - pad) - v * (h - 2 * pad);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+    }
+
+    function cubicBezierEase(t, p1x, p1y, p2x, p2y) {
+      let u = t;
+      for (let i = 0; i < 8; i++) {
+        const bx = 3 * (1 - u) * (1 - u) * u * p1x + 3 * (1 - u) * u * u * p2x + u * u * u;
+        const dbx = 3 * (1 - u) * (1 - u) * p1x + 6 * (1 - u) * u * (p2x - p1x) + 3 * u * u * (1 - p2x);
+        if (Math.abs(dbx) < 1e-8) break;
+        u -= (bx - t) / dbx;
+        u = Math.max(0, Math.min(1, u));
+      }
+      return 3 * (1 - u) * (1 - u) * u * p1y + 3 * (1 - u) * u * u * p2y + u * u * u;
+    }
+
+    // ==================== EVENT LISTENERS ====================
+    function initEventListeners() {
+      // Playback
+      document.getElementById('btn-play').addEventListener('click', () => {
+        sendCmd('play', {
+          mode: document.getElementById('play-mode').value,
+          speed: parseFloat(document.getElementById('play-speed').value)
+        });
+      });
+      document.getElementById('btn-pause').addEventListener('click', () => sendCmd('pause'));
+      document.getElementById('btn-stop').addEventListener('click', () => {
+        sendCmd('stop');
+        selectedKfIdx = -1;
+      });
+
+      // Home
+      document.getElementById('btn-home').addEventListener('click', () => {
+        sendCmd('home');
+        selectedKfIdx = -1;
+      });
+
+      // Keyframe management
+      document.getElementById('btn-kf-add').addEventListener('click', () => {
+        sendCmd('kf_add', {
+          duration: 1.0,
+          easing: 'ease-in-out'
+        });
+      });
+      document.getElementById('btn-kf-delete').addEventListener('click', () => {
+        if (selectedKfIdx >= 0) {
+          sendCmd('kf_delete', { index: selectedKfIdx });
+          selectedKfIdx = -1;
+        }
+      });
+      document.getElementById('btn-kf-update').addEventListener('click', () => {
+        if (selectedKfIdx >= 0) {
+          sendCmd('kf_update', { index: selectedKfIdx });
+        }
+      });
+
+      // Duration & Trajectory
+      document.getElementById('kf-duration').addEventListener('change', (e) => {
+        if (selectedKfIdx >= 0) {
+          sendCmd('kf_set_duration', {
+            index: selectedKfIdx,
+            duration: parseFloat(e.target.value) || 1.0
+          });
+        }
+      });
+
+      document.getElementById('kf-trajectory').addEventListener('change', (e) => {
+        if (selectedKfIdx >= 0) {
+          sendCmd('kf_set_trajectory', {
+            index: selectedKfIdx,
+            trajectory: e.target.value
+          });
+        }
+      });
+
+      // Easing buttons
+      document.querySelectorAll('.easing-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          if (selectedKfIdx >= 0) {
+            sendCmd('kf_set_easing', {
+              index: selectedKfIdx,
+              easing: btn.dataset.ease
+            });
+          }
+        });
+      });
+
+      // Timeline click to seek
+      document.getElementById('timeline-track').addEventListener('click', (e) => {
+        const track = document.getElementById('timeline-track');
+        const rect = track.getBoundingClientRect();
+        const pct = (e.clientX - rect.left) / rect.width;
+        const time = pct * (appState.total_duration || 0);
+        sendCmd('seek', { time: Math.max(0, time) });
+      });
+
+      // Export
+      document.getElementById('btn-export').addEventListener('click', showExportModal);
+      document.getElementById('modal-close').addEventListener('click', () => {
+        document.getElementById('export-modal').classList.remove('visible');
+      });
+      document.getElementById('btn-copy-code').addEventListener('click', () => {
+        const textarea = document.getElementById('code-output');
+        textarea.select();
+        navigator.clipboard.writeText(textarea.value);
+      });
+      document.getElementById('btn-export-json').addEventListener('click', exportJSON);
+
+      // Import
+      document.getElementById('btn-import').addEventListener('click', () => {
+        document.getElementById('file-import').click();
+      });
+      document.getElementById('file-import').addEventListener('change', importJSON);
+    }
+
+    // ==================== EXPORT ====================
+    function showExportModal() {
+      const kfs = appState.keyframes || [];
+      if (kfs.length === 0) {
+        alert('No keyframes to export!');
+        return;
+      }
+
+      let code = `
+KEYFRAMES = [
+`;
+
+      kfs.forEach((kf, i) => {
+        const b = kf.body;
+        code += `    {  # Keyframe ${i}\n`;
+        code += `        'body': {'x': ${b.x}, 'y': ${b.y}, 'z': ${b.z}, 'roll': ${b.roll}, 'pitch': ${b.pitch}, 'yaw': ${b.yaw}},\n`;
+        code += `        'legs': [\n`;
+        kf.legs.forEach((l, li) => {
+          code += `            [${l[0]}, ${l[1]}, ${l[2]}],  # ${appState.leg_names[li]}\n`;
+        });
+        code += `        ],\n`;
+        code += `        'duration': ${kf.duration},\n`;
+        code += `        'easing': '${kf.easing || 'ease-in-out'}',\n`;
+        code += `        'trajectory': '${kf.trajectory || 'linear'}',\n`;
+        code += `    },\n`;
+      });
+
+      code += `]
+`;
+
+      document.getElementById('code-output').value = code;
+      document.getElementById('export-modal').classList.add('visible');
+    }
+
+    function exportJSON() {
+      const data = {
+        version: 1,
+        keyframes: appState.keyframes,
+        metadata: {
+          date: new Date().toISOString(),
+          total_duration: appState.total_duration,
+        }
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `hexapod_animation_${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importJSON(e) {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        try {
+          const data = JSON.parse(ev.target.result);
+          const kfs = data.keyframes || data;
+          sendCmd('import', { keyframes: kfs });
+          selectedKfIdx = -1;
+        } catch (err) {
+          alert('Invalid JSON file: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    }
+
+    // ==================== INIT ====================
+    document.addEventListener('DOMContentLoaded', initUI);
+  </script>
+</body>
+
+</html>

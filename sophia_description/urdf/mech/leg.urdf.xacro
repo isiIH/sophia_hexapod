@@ -120,7 +120,7 @@
            inducing yaw torque. Only the sphere at the tip makes ground contact.  -->
 
       <!-- SOLE contact point: sphere at the foot tip -->
-      <collision name="${prefix}tibia_foot_collision">
+      <collision>
         <geometry>
           <sphere radius="${tibia_sphere_radius}"/> 
         </geometry>

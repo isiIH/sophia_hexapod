@@ -25,6 +25,7 @@ install(PROGRAMS
   scripts/state_controller.py
   scripts/walk.py
   scripts/leg_trajectory_visualizer.py
+  scripts/animation_editor.py
   DESTINATION lib/${PROJECT_NAME}
 )
 
@@ -32,6 +33,12 @@ install(PROGRAMS
 install(
   DIRECTORY scripts/utils/
   DESTINATION share/${PROJECT_NAME}/utils
+)
+
+# Install animation GUI files
+install(
+  DIRECTORY scripts/animation_gui/
+  DESTINATION share/${PROJECT_NAME}/animation_gui
 )
 
 if(BUILD_TESTING)

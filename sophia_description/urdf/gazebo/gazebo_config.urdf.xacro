@@ -14,8 +14,8 @@
               <bullet>
                 <!-- Bullet Featherstone reads friction ONLY from <bullet> tag.  -->
                 <!-- mu1/mu2 top-level and <ode><mu> are silently IGNORED.       -->
-                <friction>0.3</friction>
-                <friction2>0.3</friction2>
+                <friction>0.5</friction>
+                <friction2>0.5</friction2>
                 <rolling_friction>0.0</rolling_friction>
               </bullet>
               <torsional>

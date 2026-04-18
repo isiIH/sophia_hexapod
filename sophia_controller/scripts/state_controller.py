@@ -3,7 +3,7 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Joy
 from geometry_msgs.msg import Twist
-from std_msgs.msg import String, Int32
+from std_msgs.msg import String, Int32, Empty
 
 import numpy as np
 
@@ -37,14 +37,23 @@ class StateController(Node):
             10
         )
 
+        self.animation_publisher = self.create_publisher(
+            Empty,
+            'animation',
+            10
+        )
+
         # Movement params
         self.linear_limit = 0.1
         self.angular_limit = np.pi / 36 # 5 degrees
         self.previous_btn = 0
 
         # Gait params
-        self.is_pressed = False
+        self.is_r1_pressed = False
         self.gait_idx = 0
+
+        # Animation params
+        self.is_x_pressed = False
 
         self.get_logger().info('State Controller has been started...')
 
@@ -56,6 +65,8 @@ class StateController(Node):
         self.send_gait_command(joy_msg.buttons[5])
 
         self.send_height_command(joy_msg.axes[-1])
+
+        self.send_animation_command(joy_msg.buttons[0])
         
 
     def send_movement(self, axes):
@@ -93,10 +104,10 @@ class StateController(Node):
     def send_gait_command(self, str_button):
         r1 = bool(str_button)
 
-        if(r1 != self.is_pressed):
-            self.is_pressed = not self.is_pressed
+        if(r1 != self.is_r1_pressed):
+            self.is_r1_pressed = not self.is_r1_pressed
 
-            if(self.is_pressed):
+            if(self.is_r1_pressed):
                 self.gait_idx = (self.gait_idx + 1) % 5
 
                 msg = String()
@@ -117,6 +128,18 @@ class StateController(Node):
 
         # Always update previous_btn so we know when it is released (returns to 0)
         self.previous_btn = up_down
+
+    def send_animation_command(self, str_x_button):
+        x = bool(str_x_button)
+        
+        if x != self.is_x_pressed:
+            self.is_x_pressed = not self.is_x_pressed
+
+            if self.is_x_pressed:
+                self.get_logger().info("X button pressed")
+                
+                msg = Empty()
+                self.animation_publisher.publish(msg)
 
 def main(args=None):
     rclpy.init(args=args)

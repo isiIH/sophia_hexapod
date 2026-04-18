@@ -27,7 +27,9 @@ class Leg:
         y = pos[1]
         z = pos[2]
 
-        l = (x**2 + y**2) ** (1/2)
+        l_sign = 1.0 if x >= 0 else -1.0
+        l_mag = (x**2 + y**2) ** (1/2)
+        l = l_sign * l_mag
 
         l_left = l - self.hip_length
 
@@ -40,8 +42,31 @@ class Leg:
         arg_b1 = (self.femur_length**2 + self.tibia_length**2 - hf**2) / (2 * self.femur_length * self.tibia_length)
         b1 = math.acos(np.clip(arg_b1, -1.0, 1.0))
 
-        self.ths[0] = math.atan2(y, x)
-        self.ths[1] = np.pi/2 - (a1 + a2)
-        self.ths[2] = np.pi - b1
+        # Determine coxa angle (flip quadrant if leg reaches backwards to prevent 180° violent snaps)
+        if x >= 0:
+            self.ths[0] = math.atan2(y, x)
+        else:
+            self.ths[0] = math.atan2(-y, -x)
+
+        # Dual Solution IK (knee inwards vs outwards)
+        angle_down = np.pi - b1
+        angle_up = b1 - np.pi
+
+        # Pick the geometric solution closest to the leg's current physical joint state
+        if abs(self.ths[2] - angle_down) <= abs(self.ths[2] - angle_up):
+            self.ths[1] = np.pi/2 - (a1 + a2)
+            self.ths[2] = angle_down
+        else:
+            self.ths[1] = np.pi/2 - (a1 - a2)
+            self.ths[2] = angle_up
 
         return self.ths
+
+    def leg_fk(self, ths):
+        """Forward kinematics returning local [x, y, z] from [th0, th1, th2]."""
+        self.ths = np.array(ths)
+        T0 = T(yaw=ths[0])
+        T1 = T0 @ T(x=self.hip_length) @ T(pitch=ths[1])
+        T2 = T1 @ T(x=self.femur_length) @ T(pitch=ths[2])
+        T_foot = T2 @ T(x=self.tibia_length)
+        return T_foot[:3, 3]

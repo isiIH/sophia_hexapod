@@ -90,8 +90,8 @@
             </bounce>
             <friction>
               <bullet>
-                <friction>0.3</friction>
-                <friction2>0.3</friction2>
+                <friction>0.5</friction>
+                <friction2>0.5</friction2>
                 <rolling_friction>0.0</rolling_friction>
               </bullet>
               <torsional>

@@ -13,7 +13,7 @@ import numpy as np
 from utils.spider import Spider
 
 from std_msgs.msg import Float64MultiArray
-from std_msgs.msg import String, Int32
+from std_msgs.msg import String, Int32, Empty
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import JointState
 
@@ -62,6 +62,13 @@ class WalkNode(Node):
             10
         )
 
+        self.animation_sub = self.create_subscription(
+            Empty,
+            "animation",
+            self.play_animation,
+            10
+        )
+
         self.spider = Spider()
         self.time_step = 0.02
 
@@ -86,14 +93,19 @@ class WalkNode(Node):
         self.timer = self.create_timer(self.time_step, self.walk_loop)
     
     def walk_loop(self):
-        self.leg_positions = self.spider.gait.get_next_step()
+        if self.spider.is_animation_playing():
+            body, legs = self.spider.animation_player.get_frame(self.time_step)
+            self.spider.update_body_pos(**body)
+            joint_angles = self.spider.move_legs(legs, local=True)
+            self.leg_positions = self.spider.get_leg_positions()
+        else:
+            self.leg_positions = self.spider.gait.get_next_step()
+            joint_angles = self.spider.move_legs(self.leg_positions)
 
         # Publish the raw leg target points
         msg = Float64MultiArray()
         msg.data = self.leg_positions.flatten().tolist()
         self.target_pub.publish(msg)
-
-        joint_angles = self.spider.move_legs(self.leg_positions)
 
         self.send_angles(joint_angles)
 
@@ -134,6 +146,11 @@ class WalkNode(Node):
 
         self.spider.gait.set_linear_speed(linear_speed)
         self.spider.gait.set_angular_speed(angular_speed)
+
+    def play_animation(self, _ : Empty):
+        self.get_logger().info("Playing animation...")
+
+        self.spider.play_animation()
 
 
 def main(args=None):
