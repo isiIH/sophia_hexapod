@@ -56,16 +56,58 @@
       flex-direction: column;
     }
 
+    /* ==================== Responsive ==================== */
+    @media (max-width: 900px) {
+      .panel-left {
+        width: 260px;
+        min-width: 220px;
+      }
+    }
+
+    @media (max-width: 700px) {
+      .main-layout {
+        flex-direction: column;
+        overflow: hidden; /* Keep timeline at bottom */
+      }
+
+      .panel-left {
+        width: 100%;
+        min-width: unset;
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        overflow-y: auto;
+        flex: none;
+        max-height: 40vh;
+      }
+
+      .kf-card-body {
+        padding: 16px;
+        gap: 20px;
+        flex-direction: column;
+      }
+
+      .header-actions {
+        flex-wrap: wrap;
+        margin-top: 4px;
+      }
+
+      .playback-controls {
+        flex-wrap: wrap;
+      }
+    }
+
     /* ==================== Header ==================== */
     header {
       display: flex;
       align-items: center;
       justify-content: space-between;
+      gap: 12px;
       padding: 8px 16px;
       background: var(--bg-secondary);
       border-bottom: 1px solid var(--border);
       z-index: 100;
       flex-shrink: 0;
+      flex-wrap: wrap;
     }
 
     .logo {
@@ -205,8 +247,8 @@
 
     /* ==================== Left Panel ==================== */
     .panel-left {
-      width: 300px;
-      min-width: 280px;
+      width: 340px;
+      min-width: 320px;
       border-right: 1px solid var(--border);
       background: var(--bg-secondary);
       overflow-y: auto;
@@ -300,6 +342,30 @@
     .slider-value:focus {
       border-color: var(--accent);
       outline: none;
+    }
+
+    .slider-reset {
+      width: 24px;
+      height: 24px;
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--text-secondary);
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 14px;
+      line-height: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: var(--transition);
+      padding: 0;
+    }
+
+    .slider-reset:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+      background: var(--accent-glow);
     }
 
     /* Leg selector */
@@ -559,31 +625,187 @@
 
     .kf-label {
       position: absolute;
-      top: 40px;
+      top: 38px;
       font-size: 9px;
       font-family: var(--font-mono);
       color: var(--text-secondary);
       transform: translateX(-50%);
       white-space: nowrap;
-      pointer-events: none;
+      pointer-events: all;
+      user-select: none;
+    }
+
+    .kf-label-arrows {
+      display: flex;
+      align-items: center;
+      gap: 2px;
+    }
+
+    .kf-label-num {
+      min-width: 12px;
+      text-align: center;
+    }
+
+    .kf-arrow-btn {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--text-secondary);
+      border-radius: 3px;
+      font-size: 9px;
+      padding: 0 3px;
+      line-height: 14px;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .kf-arrow-btn:hover {
+      border-color: var(--accent);
+      color: var(--accent);
     }
 
     /* ==================== Easing / Keyframe Detail Panel ==================== */
+    .kf-editor-area {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+      padding: 20px;
+      overflow-y: auto;
+    }
+
+    .kf-empty-state {
+      font-size: 14px;
+      color: var(--text-muted);
+      text-align: center;
+      font-family: var(--font-mono);
+      border: 2px dashed var(--border);
+      padding: 40px;
+      border-radius: var(--radius);
+    }
+
     .kf-detail-panel {
       display: none;
-      padding: 8px 14px 10px;
-      border-top: 1px solid var(--border);
-      background: var(--bg-tertiary);
+      flex-direction: column;
+      width: 100%;
+      max-width: 620px;
+      background: rgba(26, 26, 36, 0.75);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 12px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.25);
+      overflow: hidden;
     }
 
     .kf-detail-panel.visible {
       display: flex;
-      gap: 14px;
-      align-items: flex-start;
     }
 
-    .kf-detail-col {
+    .kf-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 24px;
+      background: rgba(0, 0, 0, 0.2);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .kf-card-header h3 {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+
+    .kf-badge-id {
+      background: var(--accent);
+      color: white;
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: bold;
+      letter-spacing: 0.5px;
+    }
+
+    .kf-card-body {
+      display: flex;
+      padding: 24px;
+      gap: 32px;
+      flex-wrap: wrap;
+    }
+
+    .kf-card-inputs {
       flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      min-width: 200px;
+    }
+
+    .kf-form-group {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .kf-control-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .kf-card-preview {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .canvas-wrapper {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+    }
+
+    .arc-val-badge {
+      background: var(--bg-secondary);
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-family: var(--font-mono);
+      color: var(--text-primary);
+      border: 1px solid var(--border);
+      min-width: 48px;
+      text-align: center;
+    }
+
+    .kf-card-footer {
+      display: flex;
+      justify-content: space-between;
+      padding: 16px 24px;
+      background: rgba(0, 0, 0, 0.2);
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      align-items: center;
+      gap: 12px;
+    }
+
+    .btn-update-action {
+      padding: 8px 16px;
+      font-size: 12px;
+    }
+
+    .btn-delete-action {
+      background: transparent;
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      padding: 8px 16px;
+      font-size: 12px;
+    }
+
+    .btn-delete-action:hover {
+      background: rgba(220, 53, 69, 0.1);
     }
 
     .kf-detail-label {
@@ -592,7 +814,6 @@
       color: var(--text-secondary);
       text-transform: uppercase;
       letter-spacing: 0.8px;
-      margin-bottom: 6px;
     }
 
     .easing-buttons {
@@ -772,9 +993,8 @@
     </div>
 
     <div class="playback-controls">
-      <button id="btn-stop" title="Stop">⏹</button>
-      <button id="btn-play" title="Play">▶</button>
-      <button id="btn-pause" title="Pause">⏸</button>
+      <button id="btn-stop" title="Stop">&#9209;</button>
+      <button id="btn-play-pause" title="Play / Pause" style="min-width:34px">&#9654;</button>
       <select id="play-mode" class="play-mode-select" title="Play mode">
         <option value="once">Once</option>
         <option value="loop">Loop</option>
@@ -808,7 +1028,7 @@
 
       <!-- Body Control -->
       <div class="panel-section">
-        <div class="panel-header">🔲 Body Pose (6 DOF)</div>
+        <div class="panel-header">Body Pose (6 DOF)</div>
         <div class="panel-content" id="body-sliders">
           <!-- Generated by JS -->
         </div>
@@ -816,7 +1036,7 @@
 
       <!-- Leg Control -->
       <div class="panel-section">
-        <div class="panel-header">🦿 Leg Control</div>
+        <div class="panel-header">Leg Control</div>
         <div class="panel-content">
           <div class="leg-selector" id="leg-selector">
             <!-- Generated by JS -->
@@ -829,22 +1049,72 @@
 
     </div>
 
-    <!-- CENTER: Values Display -->
+    <!-- CENTER: Keyframe Detail + Timeline -->
     <div class="panel-center">
-      <div class="values-display">
-        <!-- Body values -->
-        <div class="body-values-card">
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
-            <span style="font-size:11px;font-weight:600;color:var(--accent)">BODY CENTER POSITION</span>
-          </div>
-          <div class="body-values-grid" id="body-values">
-            <!-- Generated by JS -->
-          </div>
+
+      <!-- Keyframe Editor Area (Fills space, pushes timeline down) -->
+      <div class="kf-editor-area" id="kf-editor-area">
+        
+        <!-- Empty State (Shown when nothing is selected) -->
+        <div class="kf-empty-state" id="kf-empty-state">
+          No keyframe selected.<br>
+          <span style="font-size: 11px; opacity: 0.7">Click a rhombus (♦) on the timeline below to edit its properties.</span>
         </div>
 
-        <!-- Leg values -->
-        <div class="values-grid" id="leg-values">
-          <!-- Generated by JS -->
+        <!-- Keyframe detail panel (Card) -->
+        <div class="kf-detail-panel" id="kf-detail">
+          
+          <!-- Header -->
+          <div class="kf-card-header">
+            <h3>Keyframe Properties</h3>
+            <span class="kf-badge-id" id="kf-badge-id">KF #0</span>
+          </div>
+
+          <!-- Body -->
+          <div class="kf-card-body">
+            
+            <!-- Left Side: Inputs -->
+            <div class="kf-card-inputs">
+              <div class="kf-form-group">
+                <label class="kf-detail-label">Duration (s)</label>
+                <input type="number" class="duration-input" id="kf-duration" value="1.0" min="0.05" step="0.05" style="max-width:120px">
+              </div>
+
+              <div class="kf-form-group">
+                <label class="kf-detail-label">Easing (Time)</label>
+                <div class="easing-buttons" id="easing-btns">
+                  <button class="easing-btn" data-ease="linear">Linear</button>
+                  <button class="easing-btn active" data-ease="ease-in">Ease In</button>
+                  <button class="easing-btn" data-ease="ease-out">Ease Out</button>
+                  <button class="easing-btn" data-ease="ease-in-out">In-Out</button>
+                </div>
+              </div>
+
+              <div class="kf-form-group">
+                <label class="kf-detail-label">Leg Arc Height (m)</label>
+                <div class="kf-control-row">
+                  <input type="range" id="kf-arc-height" min="0" max="0.12" step="0.005" value="0" style="flex:1">
+                  <span id="kf-arc-height-val" class="arc-val-badge">0.00</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Right Side: Preview -->
+            <div class="kf-card-preview">
+              <label class="kf-detail-label">Curve Preview</label>
+              <div class="canvas-wrapper">
+                <canvas class="curve-canvas" id="curve-canvas" width="160" height="100"></canvas>
+              </div>
+            </div>
+
+          </div>
+
+          <!-- Footer Actions -->
+          <div class="kf-card-footer">
+            <button class="btn btn-accent btn-update-action" id="btn-kf-update">↻ Overwrite / Update</button>
+            <button class="btn btn-danger btn-delete-action" id="btn-kf-delete">✕ Delete</button>
+          </div>
+
         </div>
       </div>
 
@@ -853,8 +1123,7 @@
         <div class="timeline-toolbar">
           <div class="timeline-toolbar-left">
             <button class="btn" id="btn-kf-add">+ Keyframe</button>
-            <button class="btn btn-danger" id="btn-kf-delete">✕ Delete</button>
-            <button class="btn" id="btn-kf-update">↻ Update KF</button>
+            <button class="btn btn-danger" id="btn-kf-clear-all">🗑 Delete All</button>
           </div>
           <div class="timeline-toolbar-right">
             <span class="timeline-info" id="timeline-time">0.000s / 0.000s</span>
@@ -864,44 +1133,7 @@
           <div class="timeline-track" id="timeline-track">
             <div class="timeline-ruler" id="timeline-ruler"></div>
             <div class="timeline-playhead" id="playhead" style="left:0"></div>
-            <!-- Keyframe markers inserted by JS -->
           </div>
-        </div>
-        <div class="kf-detail-panel" id="kf-detail">
-          <div class="kf-detail-col">
-            <div class="kf-detail-label">Duration (s)</div>
-            <input type="number" class="duration-input" id="kf-duration" value="1.0" min="0.05" step="0.05">
-          </div>
-          <div class="kf-detail-col">
-            <div class="kf-detail-label">Trajectory (Path)</div>
-            <select id="kf-trajectory" class="duration-input" style="width:100px;font-size:11px">
-              <option value="linear">Linear</option>
-              <option value="bezier">Bezier Step</option>
-            </select>
-          </div>
-          <div class="kf-detail-col">
-            <div class="kf-detail-label">Easing (Time)</div>
-            <div class="easing-buttons" id="easing-btns">
-              <button class="easing-btn" data-ease="linear">Linear</button>
-              <button class="easing-btn active" data-ease="ease-in">Ease In</button>
-              <button class="easing-btn" data-ease="ease-out">Ease Out</button>
-              <button class="easing-btn" data-ease="ease-in-out">In-Out</button>
-            </div>
-          </div>
-          <div class="kf-detail-col">
-            <div class="kf-detail-label">Curve Preview</div>
-            <canvas class="curve-canvas" id="curve-canvas" width="120" height="80"></canvas>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- RIGHT: Joint Angles -->
-    <div class="panel-right">
-      <div class="panel-section">
-        <div class="panel-header">📐 Joint Angles (°)</div>
-        <div class="panel-content" id="joint-angles">
-          <!-- Generated by JS -->
         </div>
       </div>
     </div>
@@ -916,18 +1148,52 @@
         <button class="modal-close" id="modal-close">✕</button>
       </div>
       <div style="margin-bottom:10px;font-size:12px;color:#888">
-        Keyframes: <span id="export-keyframes-count">0</span> <br> Total Duration: <span id="export-total-duration">0.000</span>s
+        Keyframes: <span id="export-keyframes-count">0</span> <br> Total Duration: <span
+          id="export-total-duration">0.000</span>s
       </div>
       <textarea class="code-output" id="code-output" readonly></textarea>
       <div style="margin-top:10px;display:flex;gap:8px">
-        <button class="btn btn-accent" id="btn-copy-code">📋 Copy to Clipboard</button>
-        <button class="btn" id="btn-export-json">💾 Export JSON</button>
+        <button class="btn btn-accent" id="btn-copy-code">Copy to Clipboard</button>
+        <button class="btn" id="btn-export-json">Export JSON</button>
       </div>
     </div>
   </div>
 
-  <!-- Hidden file input for import -->
-  <input type="file" id="file-import" accept=".json" style="display:none">
+  <!-- ==================== IMPORT MODAL ==================== -->
+  <div class="modal-overlay" id="import-modal">
+    <div class="modal">
+      <div class="modal-header">
+        <span class="modal-title">Import Animation</span>
+        <button class="modal-close" id="import-modal-close">✕</button>
+      </div>
+      <p style="font-size:12px;color:var(--text-secondary);margin-bottom:8px">
+        Paste a Python <code>KEYFRAMES = [...]</code> array or JSON array below, or upload a <code>.json</code> file.
+      </p>
+      <textarea class="code-output" id="import-text-input" style="color:var(--text-primary);height:320px" placeholder="[
+    {  # Keyframe 0
+        'body': {'x': 0, 'y': 0, 'z': 0, 'roll': 0, 'pitch': 0, 'yaw': 0},
+        'legs': [
+            [0.085, 0, -0.0627],  # RF
+            [0.085, 0, -0.0627],  # RM
+            [0.085, 0, -0.0627],  # RB
+            [0.085, 0, -0.0627],  # LF
+            [0.085, 0, -0.0627],  # LM
+            [0.085, 0, -0.0627],  # LB
+        ],
+        'duration': 1.0,
+        'easing': 'ease-in-out',
+        'arc_height': 0,
+    },
+]"></textarea>
+      <div style="margin-top:10px;display:flex;gap:8px;align-items:center">
+        <button class="btn btn-accent" id="btn-import-paste">Import from Text</button>
+        <span style="color:var(--text-muted);font-size:12px">or</span>
+        <button class="btn" id="btn-import-file">Upload JSON File</button>
+        <input type="file" id="file-import" accept=".json" style="display:none">
+      </div>
+    </div>
+  </div>
+
 
   <!-- ==================== JAVASCRIPT ==================== -->
   <script>
@@ -993,9 +1259,6 @@
       initBodySliders();
       initLegSelector();
       initLegSliders();
-      initJointAngleDisplay();
-      initBodyValuesDisplay();
-      initLegValuesDisplay();
       initEventListeners();
     }
 
@@ -1028,19 +1291,21 @@
       <input type="range" class="slider-input" id="body-${p.key}"
         min="${p.min}" max="${p.max}" step="${p.step}" value="0">
       <input type="text" class="slider-value" id="body-${p.key}-val" value="0.000">
+      <button class="slider-reset" id="body-${p.key}-rst" title="Reset ${p.label}">↺</button>
     </div>
   `).join('');
 
       BODY_PARAMS.forEach(p => {
         const slider = document.getElementById(`body-${p.key}`);
         const valInput = document.getElementById(`body-${p.key}-val`);
+        const resetBtn = document.getElementById(`body-${p.key}-rst`);
         slider.addEventListener('input', () => {
           suppressSliderUpdate = true;
           const v = parseFloat(slider.value);
           valInput.value = v.toFixed(3);
           appState.body[p.key] = v;
           sendBodyPose();
-          setTimeout(() => suppressSliderUpdate = false, 150);
+          setTimeout(() => suppressSliderUpdate = false, 200);
         });
         valInput.addEventListener('change', () => {
           suppressSliderUpdate = true;
@@ -1048,7 +1313,15 @@
           slider.value = v;
           appState.body[p.key] = v;
           sendBodyPose();
-          setTimeout(() => suppressSliderUpdate = false, 150);
+          setTimeout(() => suppressSliderUpdate = false, 200);
+        });
+        resetBtn.addEventListener('click', () => {
+          suppressSliderUpdate = true;
+          slider.value = 0;
+          valInput.value = '0.000';
+          appState.body[p.key] = 0;
+          sendBodyPose();
+          setTimeout(() => suppressSliderUpdate = false, 200);
         });
       });
     }
@@ -1078,6 +1351,7 @@
       <input type="range" class="slider-input" id="leg-${p.key}"
         min="${p.min}" max="${p.max}" step="${p.step}" value="0">
       <input type="text" class="slider-value" id="leg-${p.key}-val" value="0.000">
+      <button class="slider-reset" id="leg-${p.key}-rst" title="Reset ${p.label}">↺</button>
     </div>
   `).join('');
       html += '<div style="margin:10px 0 8px;font-size:10px;color:var(--text-secondary)">Joint Angles</div>';
@@ -1087,6 +1361,7 @@
       <input type="range" class="slider-input" id="leg-ang-${p.key}"
         min="${p.min}" max="${p.max}" step="${p.step}" value="0">
       <input type="text" class="slider-value" id="leg-ang-${p.key}-val" value="0.0">
+      <button class="slider-reset" id="leg-ang-${p.key}-rst" title="Reset ${p.label}">↺</button>
     </div>
   `).join('');
       container.innerHTML = html;
@@ -1094,6 +1369,7 @@
       LEG_PARAMS.forEach(p => {
         const slider = document.getElementById(`leg-${p.key}`);
         const valInput = document.getElementById(`leg-${p.key}-val`);
+        const resetBtn = document.getElementById(`leg-${p.key}-rst`);
         const updateFn = (vStr) => {
           suppressSliderUpdate = true;
           const v = parseFloat(vStr) || 0;
@@ -1103,15 +1379,20 @@
             appState.legs[selectedLeg][p.key] = v;
             sendLegPos(selectedLeg);
           }
-          setTimeout(() => suppressSliderUpdate = false, 150);
+          setTimeout(() => suppressSliderUpdate = false, 200);
         };
         slider.addEventListener('input', () => updateFn(slider.value));
         valInput.addEventListener('change', () => updateFn(valInput.value));
+        resetBtn.addEventListener('click', () => {
+          const homeVal = (appState.home_legs && appState.home_legs[selectedLeg]) ? appState.home_legs[selectedLeg][p.key] : 0;
+          updateFn(String(homeVal));
+        });
       });
 
       LEG_ANGLE_PARAMS.forEach(p => {
         const slider = document.getElementById(`leg-ang-${p.key}`);
         const valInput = document.getElementById(`leg-ang-${p.key}-val`);
+        const resetBtn = document.getElementById(`leg-ang-${p.key}-rst`);
         const updateFn = (vStr) => {
           suppressSliderUpdate = true;
           const v = parseFloat(vStr) || 0;
@@ -1121,10 +1402,11 @@
             appState.joint_angles_deg[selectedLeg][p.key] = v;
             sendCmd('set_leg_angles', { index: selectedLeg, angles: appState.joint_angles_deg[selectedLeg] });
           }
-          setTimeout(() => suppressSliderUpdate = false, 150);
+          setTimeout(() => suppressSliderUpdate = false, 200);
         };
         slider.addEventListener('input', () => updateFn(slider.value));
         valInput.addEventListener('change', () => updateFn(valInput.value));
+        resetBtn.addEventListener('click', () => updateFn('0'));
       });
     }
 
@@ -1133,15 +1415,19 @@
       const leg = appState.legs[selectedLeg];
       if (leg) {
         LEG_PARAMS.forEach(p => {
-          document.getElementById(`leg-${p.key}`).value = leg[p.key];
-          document.getElementById(`leg-${p.key}-val`).value = leg[p.key].toFixed(4);
+          const slider = document.getElementById(`leg-${p.key}`);
+          const valInput = document.getElementById(`leg-${p.key}-val`);
+          if (document.activeElement !== slider) slider.value = leg[p.key];
+          if (document.activeElement !== valInput) valInput.value = leg[p.key].toFixed(4);
         });
       }
       const angs = appState.joint_angles_deg ? appState.joint_angles_deg[selectedLeg] : null;
       if (angs) {
         LEG_ANGLE_PARAMS.forEach(p => {
-          document.getElementById(`leg-ang-${p.key}`).value = angs[p.key];
-          document.getElementById(`leg-ang-${p.key}-val`).value = angs[p.key].toFixed(1);
+          const slider = document.getElementById(`leg-ang-${p.key}`);
+          const valInput = document.getElementById(`leg-ang-${p.key}-val`);
+          if (document.activeElement !== slider) slider.value = angs[p.key];
+          if (document.activeElement !== valInput) valInput.value = angs[p.key].toFixed(1);
         });
       }
     }
@@ -1149,55 +1435,11 @@
     function updateBodySliders() {
       if (suppressSliderUpdate) return;
       BODY_PARAMS.forEach(p => {
-        document.getElementById(`body-${p.key}`).value = appState.body[p.key];
-        document.getElementById(`body-${p.key}-val`).value = appState.body[p.key].toFixed(3);
+        const slider = document.getElementById(`body-${p.key}`);
+        const valInput = document.getElementById(`body-${p.key}-val`);
+        if (document.activeElement !== slider) slider.value = appState.body[p.key];
+        if (document.activeElement !== valInput) valInput.value = appState.body[p.key].toFixed(3);
       });
-    }
-
-    function initJointAngleDisplay() {
-      const container = document.getElementById('joint-angles');
-      const names = ['RF', 'RM', 'RB', 'LF', 'LM', 'LB'];
-      const joints = ['Coxa', 'Femur', 'Tibia'];
-      container.innerHTML = names.map((n, i) => `
-    <div class="value-card" style="margin-bottom:6px">
-      <div class="value-card-header">
-        <span class="value-card-title">${n}</span>
-      </div>
-      ${joints.map((j, ji) => `
-        <div class="value-row">
-          <span class="value-name">${j}</span>
-          <span class="value-num" id="ja-${i}-${ji}">0.00°</span>
-        </div>
-      `).join('')}
-    </div>
-  `).join('');
-    }
-
-    function initBodyValuesDisplay() {
-      const container = document.getElementById('body-values');
-      const keys = ['x', 'y', 'z', 'roll', 'pitch', 'yaw'];
-      container.innerHTML = keys.map(k => `
-    <div class="body-val-item">
-      <div class="body-val-label">${k}</div>
-      <div class="body-val-num" id="bv-${k}">0.000</div>
-    </div>
-  `).join('');
-    }
-
-    function initLegValuesDisplay() {
-      const container = document.getElementById('leg-values');
-      const names = ['RF', 'RM', 'RB', 'LF', 'LM', 'LB'];
-      container.innerHTML = names.map((n, i) => `
-    <div class="value-card">
-      <div class="value-card-header">
-        <span class="value-card-title">${n}</span>
-        <span class="value-card-subtitle">foot pos</span>
-      </div>
-      <div class="value-row"><span class="value-name">X</span><span class="value-num" id="lp-${i}-0">0.000</span></div>
-      <div class="value-row"><span class="value-name">Y</span><span class="value-num" id="lp-${i}-1">0.000</span></div>
-      <div class="value-row"><span class="value-name">Z</span><span class="value-num" id="lp-${i}-2">0.000</span></div>
-    </div>
-  `).join('');
     }
 
     // ==================== SEND COMMANDS ====================
@@ -1217,31 +1459,6 @@
       updateBodySliders();
       updateLegSliders();
 
-      // Body values
-      ['x', 'y', 'z', 'roll', 'pitch', 'yaw'].forEach(k => {
-        const el = document.getElementById(`bv-${k}`);
-        if (el) el.textContent = (appState.body[k] || 0).toFixed(4);
-      });
-
-      // Joint angles
-      if (appState.joint_angles_deg) {
-        appState.joint_angles_deg.forEach((leg, i) => {
-          leg.forEach((a, j) => {
-            const el = document.getElementById(`ja-${i}-${j}`);
-            if (el) el.textContent = a.toFixed(2) + '°';
-          });
-        });
-      }
-
-      // Leg positions
-      if (appState.legs) {
-        appState.legs.forEach((pos, i) => {
-          pos.forEach((v, j) => {
-            const el = document.getElementById(`lp-${i}-${j}`);
-            if (el) el.textContent = v.toFixed(5);
-          });
-        });
-      }
 
       // Timeline
       updateTimeline();
@@ -1250,8 +1467,14 @@
       document.getElementById('export-keyframes-count').textContent = appState.keyframes.length;
       document.getElementById('export-total-duration').textContent = appState.total_duration.toFixed(3);
 
-      // Playback state
-      document.getElementById('btn-play').classList.toggle('active', appState.playing);
+      // Playback state — toggle the merged play/pause button icon
+      const isPlaying = appState.playing;
+      const playPauseBtn = document.getElementById('btn-play-pause');
+      if (playPauseBtn) {
+        playPauseBtn.innerHTML = isPlaying ? '&#9646;&#9646;' : '&#9654;';
+        playPauseBtn.title = isPlaying ? 'Pause' : 'Play';
+        playPauseBtn.classList.toggle('active', isPlaying);
+      }
       document.getElementById('timeline-time').textContent =
         `${appState.play_time.toFixed(3)}s / ${appState.total_duration.toFixed(3)}s`;
     }
@@ -1294,7 +1517,7 @@
           ruler.appendChild(tick);
         }
 
-        // Keyframe markers
+        // Keyframe markers with left/right reorder arrows
         let accumulated = 0;
         kfs.forEach((kf, i) => {
           if (i > 0) accumulated += kf.duration;
@@ -1304,13 +1527,34 @@
           marker.className = 'kf-marker' + (i === selectedKfIdx ? ' selected' : '');
           marker.style.left = pct + '%';
           marker.title = `KF ${i} — ${accumulated.toFixed(2)}s`;
-          marker.addEventListener('click', () => selectKeyframe(i));
+          marker.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectKeyframe(i);
+          });
           track.appendChild(marker);
 
+          // Label with reorder arrows
           const label = document.createElement('span');
           label.className = 'kf-label';
           label.style.left = pct + '%';
-          label.textContent = `${i}`;
+          label.innerHTML = `
+            <span class="kf-label-arrows">
+              <button class="kf-arrow-btn" data-from="${i}" data-to="${i - 1}" title="Move left">←</button>
+              <span class="kf-label-num">${i}</span>
+              <button class="kf-arrow-btn" data-from="${i}" data-to="${i + 1}" title="Move right">→</button>
+            </span>`;
+          // Arrow click handlers (stop propagation so marker doesn't also select)
+          label.querySelectorAll('.kf-arrow-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+              e.stopPropagation();
+              const from = parseInt(btn.dataset.from);
+              const to = parseInt(btn.dataset.to);
+              if (to >= 0 && to < kfs.length) {
+                sendCmd('kf_reorder', { from, to });
+                selectedKfIdx = to;
+              }
+            });
+          });
           track.appendChild(label);
         });
       }
@@ -1325,23 +1569,33 @@
 
       // KF detail panel
       const detail = document.getElementById('kf-detail');
+      const emptyState = document.getElementById('kf-empty-state');
       if (selectedKfIdx >= 0 && selectedKfIdx < kfs.length) {
         detail.classList.add('visible');
+        emptyState.style.display = 'none';
+        
+        // Update header badge
+        document.getElementById('kf-badge-id').textContent = `KF #${selectedKfIdx}`;
+
         const kf = kfs[selectedKfIdx];
         const durInput = document.getElementById('kf-duration');
-        const trajSel = document.getElementById('kf-trajectory');
+        const arcSlider = document.getElementById('kf-arc-height');
+        const arcVal = document.getElementById('kf-arc-height-val');
         if (document.activeElement !== durInput) {
           durInput.value = kf.duration;
         }
-        if (document.activeElement !== trajSel) {
-          trajSel.value = kf.trajectory || 'linear';
+        const arcH = kf.arc_height != null ? kf.arc_height : 0;
+        if (document.activeElement !== arcSlider) {
+          arcSlider.value = arcH;
+          arcVal.textContent = arcH.toFixed(3);
         }
         document.querySelectorAll('.easing-btn').forEach(btn => {
           btn.classList.toggle('active', btn.dataset.ease === kf.easing);
         });
-        drawEasingCurve(kf.easing, kf.bezier_p1, kf.bezier_p2);
+        drawArcCurve(arcH, kf.easing);
       } else {
         detail.classList.remove('visible');
+        emptyState.style.display = 'block';
       }
     }
 
@@ -1350,12 +1604,13 @@
       sendCmd('kf_select', { index: idx });
     }
 
-    function drawEasingCurve(easing, p1, p2) {
+    // Draw a combined easing+arc preview: the X axis is time, Y axis shows
+    // both the easing curve (dashed, gray) and the arc height modifier (solid, accent).
+    function drawArcCurve(arcHeight, easing) {
       const canvas = document.getElementById('curve-canvas');
       const ctx = canvas.getContext('2d');
       const w = canvas.width, h = canvas.height;
       const pad = 8;
-
       ctx.clearRect(0, 0, w, h);
 
       // Grid
@@ -1368,26 +1623,38 @@
         ctx.beginPath(); ctx.moveTo(pad, y); ctx.lineTo(w - pad, y); ctx.stroke();
       }
 
-      // Easing curve
-      ctx.strokeStyle = '#6c5ce7';
-      ctx.lineWidth = 2;
-      ctx.beginPath();
+      const easeFn = { linear: t => t, 'ease-in': t => t ** 3, 'ease-out': t => 1 - (1 - t) ** 3, 'ease-in-out': t => t < 0.5 ? 4 * t ** 3 : 1 - (-2 * t + 2) ** 3 / 2 }[easing] || (t => t);
       const steps = 60;
+
+      // Easing curve (dashed, dim)
+      ctx.setLineDash([3, 3]);
+      ctx.strokeStyle = 'rgba(108,92,231,0.4)';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
       for (let i = 0; i <= steps; i++) {
         const t = i / steps;
-        let v;
-        switch (easing) {
-          case 'linear': v = t; break;
-          case 'ease-in': v = t * t * t; break;
-          case 'ease-out': v = 1 - Math.pow(1 - t, 3); break;
-          case 'ease-in-out': v = t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; break;
-          case 'custom': v = cubicBezierEase(t, p1[0], p1[1], p2[0], p2[1]); break;
-          default: v = t;
-        }
+        const et = easeFn(t);
         const px = pad + t * (w - 2 * pad);
-        const py = (h - pad) - v * (h - 2 * pad);
-        if (i === 0) ctx.moveTo(px, py);
-        else ctx.lineTo(px, py);
+        const py = h - pad - et * (h - 2 * pad);
+        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
+      }
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Arc trajectory curve (solid, bright) — shows the Z height of the foot
+      // over time, peaking at t=0.5 by arc_height
+      ctx.strokeStyle = '#00cec9';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      const maxArc = 0.12;  // max scale for display
+      for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        const et = easeFn(t);
+        const arcZ = 4 * arcHeight * et * (1 - et);  // parabola in eased time
+        const px = pad + t * (w - 2 * pad);
+        // Normalize arcZ: 0→bottom line, maxArc→top line
+        const py = h - pad - (arcZ / maxArc) * (h - 2 * pad);
+        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
       }
       ctx.stroke();
     }
@@ -1406,23 +1673,32 @@
 
     // ==================== EVENT LISTENERS ====================
     function initEventListeners() {
-      // Playback
-      document.getElementById('btn-play').addEventListener('click', () => {
-        sendCmd('play', {
-          mode: document.getElementById('play-mode').value,
-          speed: parseFloat(document.getElementById('play-speed').value)
-        });
+      // Merged Play/Pause button — uses server state, not local flag
+      let _wasPaused = false;  // tracks if we paused (vs finished naturally)
+      document.getElementById('btn-play-pause').addEventListener('click', () => {
+        if (appState.playing) {
+          // Currently playing → pause
+          sendCmd('pause');
+          _wasPaused = true;
+        } else {
+          // Not playing → either resume or start fresh
+          sendCmd('play', {
+            mode: document.getElementById('play-mode').value,
+            speed: parseFloat(document.getElementById('play-speed').value),
+            resume: _wasPaused   // true = continue from current time
+          });
+          _wasPaused = false;
+        }
       });
-      document.getElementById('btn-pause').addEventListener('click', () => sendCmd('pause'));
       document.getElementById('btn-stop').addEventListener('click', () => {
         sendCmd('stop');
         selectedKfIdx = -1;
+        _wasPaused = false;
       });
 
       // Home
       document.getElementById('btn-home').addEventListener('click', () => {
         sendCmd('home');
-        selectedKfIdx = -1;
       });
 
       // Keyframe management
@@ -1438,27 +1714,35 @@
           selectedKfIdx = -1;
         }
       });
+      document.getElementById('btn-kf-clear-all').addEventListener('click', () => {
+        if (confirm('Are you sure you want to delete ALL keyframes?')) {
+          sendCmd('kf_clear_all');
+          selectedKfIdx = -1;
+        }
+      });
       document.getElementById('btn-kf-update').addEventListener('click', () => {
         if (selectedKfIdx >= 0) {
           sendCmd('kf_update', { index: selectedKfIdx });
         }
       });
 
-      // Duration & Trajectory
+      // Arc height slider (controls bezier arc height for trajectory)
+      document.getElementById('kf-arc-height').addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value);
+        document.getElementById('kf-arc-height-val').textContent = val.toFixed(3);
+        if (selectedKfIdx >= 0) {
+          const kf = (appState.keyframes || [])[selectedKfIdx];
+          drawArcCurve(val, kf ? kf.easing : 'linear');
+          sendCmd('kf_set_arc_height', { index: selectedKfIdx, arc_height: val });
+        }
+      });
+
+      // Duration
       document.getElementById('kf-duration').addEventListener('change', (e) => {
         if (selectedKfIdx >= 0) {
           sendCmd('kf_set_duration', {
             index: selectedKfIdx,
             duration: parseFloat(e.target.value) || 1.0
-          });
-        }
-      });
-
-      document.getElementById('kf-trajectory').addEventListener('change', (e) => {
-        if (selectedKfIdx >= 0) {
-          sendCmd('kf_set_trajectory', {
-            index: selectedKfIdx,
-            trajectory: e.target.value
           });
         }
       });
@@ -1477,6 +1761,9 @@
 
       // Timeline click to seek
       document.getElementById('timeline-track').addEventListener('click', (e) => {
+        // Prevent seek if they clicked a UI button or label inside the track
+        if (e.target.closest('.kf-marker') || e.target.closest('.kf-label')) return;
+        
         const track = document.getElementById('timeline-track');
         const rect = track.getBoundingClientRect();
         const pct = (e.clientX - rect.left) / rect.width;
@@ -1496,8 +1783,39 @@
       });
       document.getElementById('btn-export-json').addEventListener('click', exportJSON);
 
-      // Import
+      // Import — open modal
       document.getElementById('btn-import').addEventListener('click', () => {
+        document.getElementById('import-modal').classList.add('visible');
+      });
+      document.getElementById('import-modal-close').addEventListener('click', () => {
+        document.getElementById('import-modal').classList.remove('visible');
+      });
+      // Custom parser to handle Python string exports (single quotes, comments, trailing commas)
+      function parsePythonToJSON(text) {
+        let clean = text.replace(/KEYFRAMES\s*=\s*/g, ''); // Remove variable assignment
+        clean = clean.replace(/#.*$/gm, ''); // Remove comments
+        clean = clean.replace(/'/g, '"'); // Replace single quotes with double quotes
+        clean = clean.replace(/,\s*([\]}])/g, '$1'); // Remove trailing commas
+        return JSON.parse(clean);
+      }
+
+      // Paste import
+      document.getElementById('btn-import-paste').addEventListener('click', () => {
+        const text = document.getElementById('import-text-input').value.trim();
+        if (!text) { alert('Paste Python array or JSON first.'); return; }
+        try {
+          const data = parsePythonToJSON(text);
+          const kfs = data.keyframes || data;
+          sendCmd('import', { keyframes: kfs });
+          selectedKfIdx = -1;
+          document.getElementById('import-modal').classList.remove('visible');
+          document.getElementById('import-text-input').value = '';
+        } catch (err) {
+          alert('Error parsing code. Make sure it is a valid array of {} elements. Error details: ' + err.message);
+        }
+      });
+      // File upload inside modal
+      document.getElementById('btn-import-file').addEventListener('click', () => {
         document.getElementById('file-import').click();
       });
       document.getElementById('file-import').addEventListener('change', importJSON);
@@ -1526,7 +1844,8 @@ KEYFRAMES = [
         code += `        ],\n`;
         code += `        'duration': ${kf.duration},\n`;
         code += `        'easing': '${kf.easing || 'ease-in-out'}',\n`;
-        code += `        'trajectory': '${kf.trajectory || 'linear'}',\n`;
+        const arcH = kf.arc_height != null ? kf.arc_height : 0;
+        code += `        'arc_height': ${arcH},\n`;
         code += `    },\n`;
       });
 
@@ -1565,6 +1884,8 @@ KEYFRAMES = [
           const kfs = data.keyframes || data;
           sendCmd('import', { keyframes: kfs });
           selectedKfIdx = -1;
+          document.getElementById('import-modal').classList.remove('visible');
+          document.getElementById('import-text-input').value = '';
         } catch (err) {
           alert('Invalid JSON file: ' + err.message);
         }

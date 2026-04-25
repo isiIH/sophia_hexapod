@@ -174,6 +174,11 @@ class AnimationEditorNode(Node):
         # --- Thread lock for state access ---
         self.lock = threading.Lock()
 
+        # --- Angle overrides: legs explicitly set via angle sliders ---
+        # Persists across _apply_pose() calls so changing one leg doesn't corrupt another.
+        # Key = leg index (0-5), Value = list of 3 angles in radians.
+        self._angle_overrides = {}
+
         # --- Publishers & Broadcasters ---
         self.joint_state_pub = self.create_publisher(JointState, '/joint_states', 10)
         self.ghost_pub = self.create_publisher(MarkerArray, '/anim/ghosts', 10)
@@ -246,19 +251,39 @@ class AnimationEditorNode(Node):
                 idx = payload.get('index', 0)
                 pos = payload.get('pos', self.home_legs[idx])
                 self.legs[idx] = list(pos)
+                # Moving position slider cancels any angle override for this leg
+                self._angle_overrides.pop(idx, None)
                 self._apply_pose()
             case 'set_leg_angles':
                 idx = payload.get('index', 0)
                 # Note: angles come in degrees from GUI, convert to rads
                 angles_deg = payload.get('angles', [0,0,0])
                 angles_rad = [math.radians(a) for a in angles_deg]
-                pos = self.spider.legs[idx].leg_fk(angles_rad)
-                self.legs[idx] = pos.tolist()
+                
+                # FK returns foot position relative to the INSTANTANEOUS coxa frame 
+                # (which is currently translated/rotated by T_sb body offsets)
+                pos_cf = self.spider.legs[idx].leg_fk(angles_rad)
+                T_pos = np.eye(4)
+                T_pos[:3, 3] = pos_cf
+                
+                # We must map this physical position back to the logical "anchor" coordinate space 
+                # (which expects footprint relative to the UN-TRANSFORMED coxa)
+                T_sb = self.spider.T_sb
+                T_coxa = self.spider.legs[idx].T_coxa
+                Ts_foot = T_sb @ T_coxa @ T_pos
+                Tc_f_stored = np.linalg.inv(T_coxa) @ Ts_foot
+                
+                self.legs[idx] = Tc_f_stored[:3, 3].tolist()
+                # Save override BEFORE _apply_pose so it is preserved immediately
+                self._angle_overrides[idx] = list(angles_rad)
+                self.spider.legs[idx].ths[:] = angles_rad
+                # Run full pose (IK for all legs, then overrides are restored inside)
                 self._apply_pose()
             case 'home':
                 self.body = {'x': 0.0, 'y': 0.0, 'z': 0.0,
                              'roll': 0.0, 'pitch': 0.0, 'yaw': 0.0}
                 self.legs = [list(h) for h in self.home_legs]
+                self._angle_overrides.clear()  # home resets all explicit angle overrides
                 self._apply_pose()
 
             # --- Keyframe management ---
@@ -290,6 +315,8 @@ class AnimationEditorNode(Node):
                 idx = payload.get('index', -1)
                 if 0 <= idx < len(self.keyframes):
                     self.keyframes.pop(idx)
+            case 'kf_clear_all':
+                self.keyframes.clear()
             case 'kf_reorder':
                 old_i = payload.get('from', 0)
                 new_i = payload.get('to', 0)
@@ -303,7 +330,14 @@ class AnimationEditorNode(Node):
                     kf = self.keyframes[idx]
                     self.body = dict(kf['body'])
                     self.legs = [list(l) for l in kf['legs']]
+                    self._angle_overrides.clear()  # keyframe restore uses IK, not angle overrides
                     self._apply_pose()
+                    
+                    # Update play_time so the timeline playhead visually moves to the keyframe
+                    accumulated = 0.0
+                    for i in range(1, idx + 1):
+                        accumulated += self.keyframes[i]['duration']
+                    self.play_time = accumulated
             case 'kf_set_duration':
                 idx = payload.get('index', -1)
                 dur = payload.get('duration', 1.0)
@@ -322,12 +356,21 @@ class AnimationEditorNode(Node):
                 idx = payload.get('index', -1)
                 if 0 <= idx < len(self.keyframes):
                     self.keyframes[idx]['trajectory'] = payload.get('trajectory', 'linear')
+            case 'kf_set_arc_height':
+                idx = payload.get('index', -1)
+                if 0 <= idx < len(self.keyframes):
+                    arc_h = float(payload.get('arc_height', 0.0))
+                    self.keyframes[idx]['arc_height'] = arc_h
+                    # Use bezier trajectory automatically when arc > 0
+                    self.keyframes[idx]['trajectory'] = 'bezier' if arc_h > 0.001 else 'linear'
 
             # --- Playback ---
             case 'play':
                 if len(self.keyframes) >= 2:
+                    resume = payload.get('resume', False)
+                    if not resume:
+                        self.play_time = 0.0
                     self.playing = True
-                    self.play_time = 0.0
                     self.play_direction = 1
                     self.last_tick = time.monotonic()
                     self.play_mode = payload.get('mode', 'once')
@@ -355,25 +398,32 @@ class AnimationEditorNode(Node):
                     kf = self.keyframes[0]
                     self.body = dict(kf['body'])
                     self.legs = [list(l) for l in kf['legs']]
+                    self._angle_overrides.clear()
                     self._apply_pose()
 
     # ==================== Pose Application ====================
 
     def _apply_pose(self):
         """Apply current body + legs to spider and get joint angles."""
-        # 1. Treat slider leg values as coordinates relative to un-transformed body.
-        # This anchors the feet in the global world.
+        # 1. Anchor feet: treat stored leg positions as coxa-local coordinates.
         for i in range(6):
             Tc_f = np.eye(4)
             Tc_f[:3, 3] = self.legs[i]
             self.spider.legs[i].Ts_foot = self.spider.legs[i].T_coxa @ Tc_f
 
-        # 2. Update body pose (this recalculates joint angles based on new body position relative to anchored feet)
+        # 2. Update body pose via IK for all legs.
         angles = self.spider.update_body_pos(
             x=self.body['x'], y=self.body['y'], z=self.body['z'],
             roll=self.body['roll'], pitch=self.body['pitch'], yaw=self.body['yaw']
         )
         self.current_angles = np.array(angles).flatten().tolist()
+
+        # 3. Restore any explicit angle overrides so that per-leg angle slider
+        #    values are never corrupted by IK recalculation of other legs.
+        for leg_idx, override_angles in self._angle_overrides.items():
+            for j, a in enumerate(override_angles):
+                self.current_angles[leg_idx * 3 + j] = a
+            self.spider.legs[leg_idx].ths[:] = override_angles
 
     # ==================== Playback Engine ====================
 
@@ -412,27 +462,28 @@ class AnimationEditorNode(Node):
         for key in ['x', 'y', 'z', 'roll', 'pitch', 'yaw']:
             self.body[key] = kf_a['body'][key] * (1.0 - et) + kf_b['body'][key] * et
 
-        trajectory = kf_b.get('trajectory', 'linear')
+        arc_height = kf_b.get('arc_height', 0.0)
 
         for i in range(6):
-            if trajectory == 'bezier':
-                p0x, p0y, p0z = kf_a['legs'][i]
-                p2x, p2y, p2z = kf_b['legs'][i]
-                
-                # Only apply the walking lift curve if the leg is actually moving horizontally
-                dist = math.hypot(p2x - p0x, p2y - p0y)
-                if dist > 0.005:
-                    peak_z = max(p0z, p2z) + 0.04 # 4cm lifting step peak
-                else:
-                    peak_z = (p0z + p2z) / 2.0
-                
-                self.legs[i][0] = p0x * (1.0 - et) + p2x * et
-                self.legs[i][1] = p0y * (1.0 - et) + p2y * et
-                # Quadratic Bezier Curve for Z: (1-t)^2 P0 + 2(1-t)t P1 + t^2 P2
-                self.legs[i][2] = ((1.0 - et)**2) * p0z + 2 * (1.0 - et) * et * peak_z + (et**2) * p2z
+            p0x, p0y, p0z = kf_a['legs'][i]
+            p2x, p2y, p2z = kf_b['legs'][i]
+
+            dist = math.hypot(p2x - p0x, p2y - p0y)
+
+            self.legs[i][0] = p0x * (1.0 - et) + p2x * et
+            self.legs[i][1] = p0y * (1.0 - et) + p2y * et
+
+            # Backwards compatibility for trajectory: bezier
+            traj = kf_b.get('trajectory', 'linear')
+            effective_arc = arc_height
+            if traj == 'bezier' and effective_arc < 0.001:
+                effective_arc = 0.04
+
+            if effective_arc > 0.001 and dist > 0.005:
+                # Parabolic arc: z(t) = lerp + 4*H*et*(1-et)
+                self.legs[i][2] = p0z * (1.0 - et) + p2z * et + 4.0 * effective_arc * et * (1.0 - et)
             else:
-                for j in range(3):
-                    self.legs[i][j] = kf_a['legs'][i][j] * (1.0 - et) + kf_b['legs'][i][j] * et
+                self.legs[i][2] = p0z * (1.0 - et) + p2z * et
 
         self._apply_pose()
 

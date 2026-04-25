@@ -95,8 +95,16 @@ class WalkNode(Node):
     def walk_loop(self):
         if self.spider.is_animation_playing():
             body, legs = self.spider.animation_player.get_frame(self.time_step)
-            self.spider.update_body_pos(**body)
-            joint_angles = self.spider.move_legs(legs, local=True)
+            
+            # 1. Provide the target leg footprints from the keyframe to the IK anchor.
+            import numpy as np
+            for i in range(6):
+                Tc_f = np.eye(4)
+                Tc_f[:3, 3] = legs[i]
+                self.spider.legs[i].Ts_foot = self.spider.legs[i].T_coxa @ Tc_f
+
+            # 2. Update the body position and run IK for the new body against the new anchors.
+            joint_angles = np.array(self.spider.update_body_pos(**body)).flatten().tolist()
             self.leg_positions = self.spider.get_leg_positions()
         else:
             self.leg_positions = self.spider.gait.get_next_step()

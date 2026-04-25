@@ -38,11 +38,33 @@
         
     </xacro:macro>
     
-    <xacro:macro name="joint_gazebo" params="name">
+    <xacro:macro name="joint_gazebo_coxa" params="name">
         <joint name="${name}">
             <command_interface name="position">
-                <param name="min">-1.57</param>
+                <param name="min">-1.0</param>
+                <param name="max">1.0</param>
+            </command_interface>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+        </joint>
+    </xacro:macro>
+
+    <xacro:macro name="joint_gazebo_femur" params="name">
+        <joint name="${name}">
+            <command_interface name="position">
+                <param name="min">-1.85</param>
                 <param name="max">1.57</param>
+            </command_interface>
+            <state_interface name="position"/>
+            <state_interface name="velocity"/>
+        </joint>
+    </xacro:macro>
+
+    <xacro:macro name="joint_gazebo_tibia" params="name">
+        <joint name="${name}">
+            <command_interface name="position">
+                <param name="min">-2.0</param>
+                <param name="max">2.75</param>
             </command_interface>
             <state_interface name="position"/>
             <state_interface name="velocity"/>
@@ -69,24 +91,24 @@
             <plugin>gz_ros2_control/GazeboSimSystem</plugin>
         </hardware>
 
-        <xacro:joint_gazebo name="rf_coxa_joint"/>
-        <xacro:joint_gazebo name="rf_coxa_link_to_rf_femur_link"/>
-        <xacro:joint_gazebo name="rf_femur_link_to_rf_tibia_link"/>
-        <xacro:joint_gazebo name="rm_coxa_joint"/>
-        <xacro:joint_gazebo name="rm_coxa_link_to_rm_femur_link"/>
-        <xacro:joint_gazebo name="rm_femur_link_to_rm_tibia_link"/>
-        <xacro:joint_gazebo name="rb_coxa_joint"/>
-        <xacro:joint_gazebo name="rb_coxa_link_to_rb_femur_link"/>
-        <xacro:joint_gazebo name="rb_femur_link_to_rb_tibia_link"/>
-        <xacro:joint_gazebo name="lf_coxa_joint"/>
-        <xacro:joint_gazebo name="lf_coxa_link_to_lf_femur_link"/>
-        <xacro:joint_gazebo name="lf_femur_link_to_lf_tibia_link"/>
-        <xacro:joint_gazebo name="lm_coxa_joint"/>
-        <xacro:joint_gazebo name="lm_coxa_link_to_lm_femur_link"/>
-        <xacro:joint_gazebo name="lm_femur_link_to_lm_tibia_link"/>
-        <xacro:joint_gazebo name="lb_coxa_joint"/>
-        <xacro:joint_gazebo name="lb_coxa_link_to_lb_femur_link"/>
-        <xacro:joint_gazebo name="lb_femur_link_to_lb_tibia_link"/>
+        <xacro:joint_gazebo_coxa  name="rf_coxa_joint"/>
+        <xacro:joint_gazebo_femur name="rf_coxa_link_to_rf_femur_link"/>
+        <xacro:joint_gazebo_tibia name="rf_femur_link_to_rf_tibia_link"/>
+        <xacro:joint_gazebo_coxa  name="rm_coxa_joint"/>
+        <xacro:joint_gazebo_femur name="rm_coxa_link_to_rm_femur_link"/>
+        <xacro:joint_gazebo_tibia name="rm_femur_link_to_rm_tibia_link"/>
+        <xacro:joint_gazebo_coxa  name="rb_coxa_joint"/>
+        <xacro:joint_gazebo_femur name="rb_coxa_link_to_rb_femur_link"/>
+        <xacro:joint_gazebo_tibia name="rb_femur_link_to_rb_tibia_link"/>
+        <xacro:joint_gazebo_coxa  name="lf_coxa_joint"/>
+        <xacro:joint_gazebo_femur name="lf_coxa_link_to_lf_femur_link"/>
+        <xacro:joint_gazebo_tibia name="lf_femur_link_to_lf_tibia_link"/>
+        <xacro:joint_gazebo_coxa  name="lm_coxa_joint"/>
+        <xacro:joint_gazebo_femur name="lm_coxa_link_to_lm_femur_link"/>
+        <xacro:joint_gazebo_tibia name="lm_femur_link_to_lm_tibia_link"/>
+        <xacro:joint_gazebo_coxa  name="lb_coxa_joint"/>
+        <xacro:joint_gazebo_femur name="lb_coxa_link_to_lb_femur_link"/>
+        <xacro:joint_gazebo_tibia name="lb_femur_link_to_lb_tibia_link"/>
 
     </ros2_control>
 

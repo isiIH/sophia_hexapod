@@ -61,13 +61,13 @@ class AnimationPlayer:
                 local_elapsed = self.elapsed - accumulated
                 t = min(local_elapsed / duration, 1.0) if duration > 0 else 1.0
                 
-                return self._interpolate(kf_a, kf_b, t, kf_b.get('easing', 'ease-in-out'), kf_b.get('trajectory', 'linear'))
+                return self._interpolate(kf_a, kf_b, t, kf_b.get('easing', 'ease-in-out'))
             
             accumulated += duration
         
         return None
 
-    def _interpolate(self, kf_a, kf_b, t, easing_name, trajectory_name):
+    def _interpolate(self, kf_a, kf_b, t, easing_name):
         ease_fn = EASING.get(easing_name, ease_linear)
         et = ease_fn(t)
 
@@ -75,25 +75,29 @@ class AnimationPlayer:
         for key in ['x', 'y', 'z', 'roll', 'pitch', 'yaw']:
             body[key] = kf_a['body'][key] * (1.0 - et) + kf_b['body'][key] * et
 
+        arc_height = kf_b.get('arc_height', 0.0)
+
         legs = []
         for i in range(6):
             leg = [0.0, 0.0, 0.0]
-            if trajectory_name == 'bezier':
-                p0x, p0y, p0z = kf_a['legs'][i]
-                p2x, p2y, p2z = kf_b['legs'][i]
-                
-                dist = math.hypot(p2x - p0x, p2y - p0y)
-                if dist > 0.005:
-                    peak_z = max(p0z, p2z) + 0.04
-                else:
-                    peak_z = (p0z + p2z) / 2.0
-                
-                leg[0] = p0x * (1.0 - et) + p2x * et
-                leg[1] = p0y * (1.0 - et) + p2y * et
-                leg[2] = ((1.0 - et)**2) * p0z + 2 * (1.0 - et) * et * peak_z + (et**2) * p2z
+            p0x, p0y, p0z = kf_a['legs'][i]
+            p2x, p2y, p2z = kf_b['legs'][i]
+
+            dist = math.hypot(p2x - p0x, p2y - p0y)
+
+            leg[0] = p0x * (1.0 - et) + p2x * et
+            leg[1] = p0y * (1.0 - et) + p2y * et
+
+            traj = kf_b.get('trajectory', 'linear')
+            effective_arc = arc_height
+            if traj == 'bezier' and effective_arc < 0.001:
+                effective_arc = 0.04
+
+            if effective_arc > 0.001 and dist > 0.005:
+                leg[2] = p0z * (1.0 - et) + p2z * et + 4.0 * effective_arc * et * (1.0 - et)
             else:
-                for j in range(3):
-                    leg[j] = kf_a['legs'][i][j] * (1.0 - et) + kf_b['legs'][i][j] * et
+                leg[2] = p0z * (1.0 - et) + p2z * et
+
             legs.append(leg)
 
         return body, legs

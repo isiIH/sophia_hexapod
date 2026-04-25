@@ -27,13 +27,20 @@ class Leg:
         y = pos[1]
         z = pos[2]
 
-        l_sign = 1.0 if x >= 0 else -1.0
-        l_mag = (x**2 + y**2) ** (1/2)
-        l = l_sign * l_mag
+        # Coxa angle: always use atan2 (no quadrant flip)
+        self.ths[0] = math.atan2(y, x)
 
-        l_left = l - self.hip_length
+        # Radial distance in the coxa's plane (always positive)
+        r = math.sqrt(x**2 + y**2)
 
-        hf = (l_left**2 + z**2) ** (1/2)
+        # Distance from femur pivot to foot in the 2D sagittal plane
+        l_left = r - self.hip_length
+        hf = math.sqrt(l_left**2 + z**2)
+
+        # Clamp reach to prevent acos domain errors at full extension/retraction
+        max_reach = self.femur_length + self.tibia_length - 0.001
+        min_reach = abs(self.femur_length - self.tibia_length) + 0.001
+        hf = max(min_reach, min(hf, max_reach))
 
         a1 = math.atan2(l_left, -z)
         arg_a2 = (self.femur_length**2 + hf**2 - self.tibia_length**2) / (2 * self.femur_length * hf)
@@ -41,12 +48,6 @@ class Leg:
 
         arg_b1 = (self.femur_length**2 + self.tibia_length**2 - hf**2) / (2 * self.femur_length * self.tibia_length)
         b1 = math.acos(np.clip(arg_b1, -1.0, 1.0))
-
-        # Determine coxa angle (flip quadrant if leg reaches backwards to prevent 180° violent snaps)
-        if x >= 0:
-            self.ths[0] = math.atan2(y, x)
-        else:
-            self.ths[0] = math.atan2(-y, -x)
 
         # Dual Solution IK (knee inwards vs outwards)
         angle_down = np.pi - b1
