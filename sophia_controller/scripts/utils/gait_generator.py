@@ -194,3 +194,15 @@ class GaitGenerator:
             self.is_moving = True
             # Standard ticking speed
             self.t_inc = self.time_step / self.cycle_duration
+
+    def stop(self):
+        if self.is_moving:
+            self.is_moving = False
+            self.t = 0.0
+            self.t_inc = 0.0
+            self.current_leg_positions = np.copy(self.home_positions)
+            self.offsets = np.copy(self.target_offsets)
+            self.swing_time = self.target_swing_time
+            self.stance_time = 1 - self.swing_time
+            self.linear_speed = np.zeros(3)
+            self.angular_speed = 0.0

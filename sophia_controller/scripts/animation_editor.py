@@ -150,7 +150,7 @@ class AnimationEditorNode(Node):
         super().__init__('animation_editor')
 
         # --- Spider ---
-        self.spider = Spider()
+        self.spider = Spider(0.02)
         self.current_angles = self.spider.get_joint_angles()
 
         # --- Current editing state ---
@@ -405,17 +405,7 @@ class AnimationEditorNode(Node):
 
     def _apply_pose(self):
         """Apply current body + legs to spider and get joint angles."""
-        # 1. Anchor feet: treat stored leg positions as coxa-local coordinates.
-        for i in range(6):
-            Tc_f = np.eye(4)
-            Tc_f[:3, 3] = self.legs[i]
-            self.spider.legs[i].Ts_foot = self.spider.legs[i].T_coxa @ Tc_f
-
-        # 2. Update body pose via IK for all legs.
-        angles = self.spider.update_body_pos(
-            x=self.body['x'], y=self.body['y'], z=self.body['z'],
-            roll=self.body['roll'], pitch=self.body['pitch'], yaw=self.body['yaw']
-        )
+        angles = self.spider.apply_pose(self.body, self.legs)
         self.current_angles = np.array(angles).flatten().tolist()
 
         # 3. Restore any explicit angle overrides so that per-leg angle slider
@@ -603,7 +593,7 @@ class AnimationEditorNode(Node):
                 return
             kf_snapshot = [dict(kf) for kf in self.keyframes]
 
-        ghost_spider = Spider()
+        ghost_spider = Spider(0.02)
         for ki, kf in enumerate(kf_snapshot):
             ghost_spider.home()
             b = kf['body']

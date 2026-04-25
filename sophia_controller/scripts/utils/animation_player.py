@@ -1,4 +1,8 @@
 import math
+from pathlib import Path
+import json
+from ament_index_python.packages import get_package_share_directory
+import os
 
 # ==================== EASING FUNCTIONS ====================
 def ease_linear(t):
@@ -22,6 +26,31 @@ EASING = {
     'ease-out': ease_out,
     'ease-in-out': ease_in_out,
 }
+
+class AnimationLoader:
+    def __init__(self, path):
+        self.directory = Path(os.path.join(get_package_share_directory('sophia_controller'), path))
+        self.animations = {}
+        self._load()
+
+    def _load(self):
+        if not self.directory.exists():
+            print(f"Error: The directory '{self.directory}' does not exist.")
+            return
+
+        for file in self.directory.glob("*.json"):
+            try:
+                with open(file, 'r') as f:
+                    data = json.load(f)
+                    kfs = data.get('keyframes', data) if isinstance(data, dict) else data
+                    self.animations[file.stem] = AnimationPlayer(kfs)
+            except json.JSONDecodeError:
+                print(f"Syntax error in {file.name}")
+            except Exception as e:
+                print(f"Error: Could not load animation from {file.name}: {e}")
+            
+    def get_animation(self, name):
+        return self.animations.get(name, None)
 
 class AnimationPlayer:
     def __init__(self, keyframes):

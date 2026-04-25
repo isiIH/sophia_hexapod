@@ -8,168 +8,10 @@ from urdf_parser_py.urdf import URDF
 from ament_index_python.packages import get_package_share_directory
 
 from utils.gait_generator import GaitGenerator
-from utils.animation_player import AnimationPlayer
-
-# KEYFRAMES = [
-#     {  # Keyframe 0
-#         'body': {'x': 0, 'y': 0, 'z': 0, 'roll': 0, 'pitch': 0, 'yaw': 0},
-#         'legs': [
-#             [0.085, 0, -0.0627],  # RF
-#             [0.085, 0, -0.0627],  # RM
-#             [0.085, 0, -0.0627],  # RB
-#             [0.085, 0, -0.0627],  # LF
-#             [0.085, 0, -0.0627],  # LM
-#             [0.085, 0, -0.0627],  # LB
-#         ],
-#         'duration': 0.5,
-#         'easing': 'ease-in-out',
-#     },
-#     {  # Keyframe 1
-#         'body': {'x': 0, 'y': 0, 'z': 0, 'roll': 0, 'pitch': 0, 'yaw': 0},
-#         'legs': [
-#             [0.10561287858115681, 0, 0.10462138496267549],  # RF
-#             [0.085, 0, -0.0627],  # RM
-#             [0.085, 0, -0.0627],  # RB
-#             [0.085, 0, -0.0627],  # LF
-#             [0.085, 0, -0.0627],  # LM
-#             [0.085, 0, -0.0627],  # LB
-#         ],
-#         'duration': 1,
-#         'easing': 'ease-in-out',
-#     },
-#     {  # Keyframe 2
-#         'body': {'x': 0, 'y': 0, 'z': 0, 'roll': 0, 'pitch': 0, 'yaw': 0},
-#         'legs': [
-#             [0.12609066257374163, 0, 0.003969860990764818],  # RF
-#             [0.085, 0, -0.0627],  # RM
-#             [0.085, 0, -0.0627],  # RB
-#             [0.085, 0, -0.0627],  # LF
-#             [0.085, 0, -0.0627],  # LM
-#             [0.085, 0, -0.0627],  # LB
-#         ],
-#         'duration': 0.5,
-#         'easing': 'ease-in-out',
-#     },
-#     {  # Keyframe 3
-#         'body': {'x': 0, 'y': 0, 'z': 0, 'roll': 0, 'pitch': 0, 'yaw': 0},
-#         'legs': [
-#             [0.10561916662559263, 0, 0.10459047823685506],  # RF
-#             [0.085, 0, -0.0627],  # RM
-#             [0.085, 0, -0.0627],  # RB
-#             [0.085, 0, -0.0627],  # LF
-#             [0.085, 0, -0.0627],  # LM
-#             [0.085, 0, -0.0627],  # LB
-#         ],
-#         'duration': 0.5,
-#         'easing': 'ease-in-out',
-#     },
-#     {  # Keyframe 4
-#         'body': {'x': 0, 'y': 0, 'z': 0, 'roll': 0, 'pitch': 0, 'yaw': 0},
-#         'legs': [
-#             [0.085, 0, -0.0627],  # RF
-#             [0.085, 0, -0.0627],  # RM
-#             [0.085, 0, -0.0627],  # RB
-#             [0.085, 0, -0.0627],  # LF
-#             [0.085, 0, -0.0627],  # LM
-#             [0.085, 0, -0.0627],  # LB
-#         ],
-#         'duration': 1,
-#         'easing': 'ease-in-out',
-#     },
-# ]
-
-KEYFRAMES = [
-    {  # Keyframe 0
-        'body': {'x': 0, 'y': 0, 'z': 0, 'roll': 0, 'pitch': 0, 'yaw': 0},
-        'legs': [
-            [0.085, 0, -0.0627],  # RF
-            [0.085, 0, -0.0627],  # RM
-            [0.085, 0, -0.0627],  # RB
-            [0.085, 0, -0.0627],  # LF
-            [0.085, 0, -0.0627],  # LM
-            [0.085, 0, -0.0627],  # LB
-        ],
-        'duration': 1,
-        'easing': 'ease-in-out',
-        'arc_height': 0,
-    },
-    {  # Keyframe 1
-        'body': {'x': 0, 'y': -0.025, 'z': 0, 'roll': 0.15, 'pitch': 0, 'yaw': 0},
-        'legs': [
-            [0.085, 0, -0.0627],  # RF
-            [0.085, 0, -0.0627],  # RM
-            [0.085, 0, -0.0627],  # RB
-            [0.085, 0, -0.0627],  # LF
-            [0.085, 0, -0.0627],  # LM
-            [0.085, 0, -0.0627],  # LB
-        ],
-        'duration': 0.5,
-        'easing': 'linear',
-        'arc_height': 0,
-    },
-    {  # Keyframe 2
-        'body': {'x': 0, 'y': -0.04961741353112668, 'z': 0, 'roll': 0.29778854648002273, 'pitch': 0, 'yaw': 0},
-        'legs': [
-            [0.04742953997729006, -0.014364853683675105, 0.12624392941236834],  # RF
-            [0.085, 0, -0.06270000000000002],  # RM
-            [0.085, 0, -0.06270000000000002],  # RB
-            [0.04742954394799276, 0.014364853708546572, 0.12624392941236834],  # LF
-            [0.085, 0, -0.06270000000000002],  # LM
-            [0.085, 0, -0.06270000000000002],  # LB
-        ],
-        'duration': 0.5,
-        'easing': 'linear',
-        'arc_height': 0,
-    },
-    {  # Keyframe 3
-        'body': {'x': 0, 'y': 0.04997677192633174, 'z': 0, 'roll': -0.15989315086112596, 'pitch': 0, 'yaw': 0},
-        'legs': [
-            [0.16914734476395898, 0.021009647962869846, -0.0627],  # RF
-            [0.085, 0, -0.0627],  # RM
-            [0.085, 0, -0.0627],  # RB
-            [0.1691787276574322, -0.021009451388416502, -0.0627],  # LF
-            [0.085, 0, -0.0627],  # LM
-            [0.085, 0, -0.0627],  # LB
-        ],
-        'duration': 0.3,
-        'easing': 'ease-in',
-        'arc_height': 0.035,
-    },
-    {  # Keyframe 4
-        'body': {'x': 0, 'y': 0.04997677192633174, 'z': 0, 'roll': -0.15989315086112596, 'pitch': 0, 'yaw': 0},
-        'legs': [
-            [0.16914734476395898, 0.021009647962869846, -0.0627],  # RF
-            [0.085, 0, -0.0627],  # RM
-            [0.085, 0, -0.0627],  # RB
-            [0.1691787276574322, -0.021009451388416502, -0.0627],  # LF
-            [0.085, 0, -0.0627],  # LM
-            [0.085, 0, -0.0627],  # LB
-        ],
-        'duration': 0.5,
-        'easing': 'ease-in-out',
-        'arc_height': 0,
-    },
-    {  # Keyframe 5
-        'body': {'x': 0, 'y': 0, 'z': 0, 'roll': 0, 'pitch': 0, 'yaw': 0},
-        'legs': [
-            [0.085, 0, -0.0627],  # RF
-            [0.085, 0, -0.0627],  # RM
-            [0.085, 0, -0.0627],  # RB
-            [0.085, 0, -0.0627],  # LF
-            [0.085, 0, -0.0627],  # LM
-            [0.085, 0, -0.0627],  # LB
-        ],
-        'duration': 0.5,
-        'easing': 'ease-in-out',
-        'arc_height': 0.05,
-    },
-]
-
-
-
+from utils.animation_player import AnimationLoader
 
 class Spider:
-    def __init__(self):
+    def __init__(self, time_step):
         self.legs = []
         self.T_sb = T()
         self.read_config_robot()
@@ -178,12 +20,15 @@ class Spider:
         self.home()
         home_s_foot = self.get_leg_positions()
 
-        self.gait = GaitGenerator(home_s_foot)
+        self.time_step = time_step
+
+        self.gait = GaitGenerator(home_s_foot, time_step=time_step)
 
         self.height = 0.0
 
         # Animation
-        self.animation_player = AnimationPlayer(KEYFRAMES)
+        self.animation_player = None
+        self.animation_loader = AnimationLoader("animations")
 
     def read_config_robot(self):
         pkg_path = get_package_share_directory('sophia_description')
@@ -236,6 +81,34 @@ class Spider:
 
         return np.array(angles).flatten().tolist()
     
+    def apply_pose(self, body, legs):
+        """
+        Anchor feet to the given leg targets (relative to coxa),
+        then update the body pose to calculate full IK.
+        """
+        for i in range(6):
+            Tc_f = np.eye(4)
+            Tc_f[:3, 3] = legs[i]
+            self.legs[i].Ts_foot = self.legs[i].T_coxa @ Tc_f
+
+        angles = self.update_body_pos(**body)
+        return np.array(angles).flatten().tolist()
+
+    def get_next_frame(self):
+        if self.is_animation_playing():
+            self.gait.stop()
+
+            frame = self.animation_player.get_frame(self.time_step)
+            if frame:
+                body, legs = frame
+                joint_angles = self.apply_pose(body, legs)
+                leg_positions = self.get_leg_positions()
+        else:
+            leg_positions = self.gait.get_next_step()
+            joint_angles = self.move_legs(leg_positions)
+
+        return joint_angles, leg_positions.flatten().tolist()
+    
     def get_leg_positions(self):
         return np.array([leg.Ts_foot[:3, 3].copy() for leg in self.legs])
 
@@ -248,11 +121,16 @@ class Spider:
 
         self.update_body_pos(z = self.height)
 
-    def play_animation(self):
-        self.animation_player.play()
+    def play_animation(self, animation_name):
+        if self.is_animation_playing():
+            return
+
+        self.animation_player = self.animation_loader.get_animation(animation_name)
+        if self.animation_player:
+            self.animation_player.play()
 
     def is_animation_playing(self):
-        return self.animation_player.is_playing()
+        return self.animation_player.is_playing() if self.animation_player else False
     
     def home(self):
         self.move_legs(self.home_positions, local=True)

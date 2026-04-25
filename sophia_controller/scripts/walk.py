@@ -63,14 +63,14 @@ class WalkNode(Node):
         )
 
         self.animation_sub = self.create_subscription(
-            Empty,
+            String,
             "animation",
             self.play_animation,
             10
         )
 
-        self.spider = Spider()
         self.time_step = 0.02
+        self.spider = Spider(self.time_step)
 
         self.walk_controller()
 
@@ -93,26 +93,11 @@ class WalkNode(Node):
         self.timer = self.create_timer(self.time_step, self.walk_loop)
     
     def walk_loop(self):
-        if self.spider.is_animation_playing():
-            body, legs = self.spider.animation_player.get_frame(self.time_step)
-            
-            # 1. Provide the target leg footprints from the keyframe to the IK anchor.
-            import numpy as np
-            for i in range(6):
-                Tc_f = np.eye(4)
-                Tc_f[:3, 3] = legs[i]
-                self.spider.legs[i].Ts_foot = self.spider.legs[i].T_coxa @ Tc_f
-
-            # 2. Update the body position and run IK for the new body against the new anchors.
-            joint_angles = np.array(self.spider.update_body_pos(**body)).flatten().tolist()
-            self.leg_positions = self.spider.get_leg_positions()
-        else:
-            self.leg_positions = self.spider.gait.get_next_step()
-            joint_angles = self.spider.move_legs(self.leg_positions)
+        joint_angles, leg_positions = self.spider.get_next_frame()
 
         # Publish the raw leg target points
         msg = Float64MultiArray()
-        msg.data = self.leg_positions.flatten().tolist()
+        msg.data = leg_positions
         self.target_pub.publish(msg)
 
         self.send_angles(joint_angles)
@@ -155,11 +140,10 @@ class WalkNode(Node):
         self.spider.gait.set_linear_speed(linear_speed)
         self.spider.gait.set_angular_speed(angular_speed)
 
-    def play_animation(self, _ : Empty):
-        self.get_logger().info("Playing animation...")
+    def play_animation(self, msg : String):
+        self.get_logger().info("Playing animation: " + msg.data)
 
-        self.spider.play_animation()
-
+        self.spider.play_animation(msg.data)
 
 def main(args=None):
     rclpy.init(args=args)

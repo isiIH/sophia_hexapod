@@ -3,11 +3,26 @@ import rclpy
 from rclpy.node import Node
 from sensor_msgs.msg import Joy
 from geometry_msgs.msg import Twist
-from std_msgs.msg import String, Int32, Empty
+from std_msgs.msg import String, Int32
 
 import numpy as np
 
 GAITS = ['tripod', 'ripple', 'wave', 'bi', 'tetrapod']
+
+class ButtonState:
+    def __init__(self, btn_idx):
+        self.btn_idx = btn_idx
+        self.is_pressed = False
+
+    def is_btn_pressed(self, joy_msg : Joy):
+        btn = bool(joy_msg.buttons[self.btn_idx])
+
+        if btn != self.is_pressed:
+            self.is_pressed = not self.is_pressed
+            
+            return self.is_pressed
+
+        return False
 
 class StateController(Node):
     def __init__(self):
@@ -38,7 +53,7 @@ class StateController(Node):
         )
 
         self.animation_publisher = self.create_publisher(
-            Empty,
+            String,
             'animation',
             10
         )
@@ -49,11 +64,12 @@ class StateController(Node):
         self.previous_btn = 0
 
         # Gait params
-        self.is_r1_pressed = False
         self.gait_idx = 0
 
-        # Animation params
-        self.is_x_pressed = False
+        # Buttons
+        self.r1_btn = ButtonState(5)
+        self.x_btn = ButtonState(2)
+        self.square_btn = ButtonState(0)
 
         self.get_logger().info('State Controller has been started...')
 
@@ -62,11 +78,13 @@ class StateController(Node):
 
         self.send_movement(joy_msg.axes[:4])
 
-        self.send_gait_command(joy_msg.buttons[5])
+        self.send_gait_command(joy_msg)
 
         self.send_height_command(joy_msg.axes[-1])
 
-        self.send_animation_command(joy_msg.buttons[0])
+        self.send_animation_command(joy_msg, self.x_btn, "attack")
+
+        self.send_animation_command(joy_msg, self.square_btn, "salute")
         
 
     def send_movement(self, axes):
@@ -101,22 +119,15 @@ class StateController(Node):
 
         self.movement_publisher.publish(twist)
 
-    def send_gait_command(self, str_button):
-        r1 = bool(str_button)
+    def send_gait_command(self, joy_msg):
+        if self.r1_btn.is_btn_pressed(joy_msg):
+            self.gait_idx = (self.gait_idx + 1) % 5
 
-        if(r1 != self.is_r1_pressed):
-            self.is_r1_pressed = not self.is_r1_pressed
+            msg = String()
+            msg.data = GAITS[self.gait_idx]
+            self.gait_publisher.publish(msg)
 
-            if(self.is_r1_pressed):
-                self.gait_idx = (self.gait_idx + 1) % 5
-
-                msg = String()
-
-                msg.data = GAITS[self.gait_idx]
-
-                self.gait_publisher.publish(msg)
-
-                self.get_logger().info("Sending gait change to " + GAITS[self.gait_idx])
+            self.get_logger().info("Sending gait change to " + GAITS[self.gait_idx])
 
     def send_height_command(self, str_up_down):
         up_down = int(str_up_down)
@@ -126,20 +137,16 @@ class StateController(Node):
             msg.data = int(up_down)
             self.height_publisher.publish(msg)
 
-        # Always update previous_btn so we know when it is released (returns to 0)
+        # Always update previous_btn so we know when it is released
         self.previous_btn = up_down
 
-    def send_animation_command(self, str_x_button):
-        x = bool(str_x_button)
-        
-        if x != self.is_x_pressed:
-            self.is_x_pressed = not self.is_x_pressed
-
-            if self.is_x_pressed:
-                self.get_logger().info("X button pressed")
-                
-                msg = Empty()
-                self.animation_publisher.publish(msg)
+    def send_animation_command(self, joy_msg, btn, animation_name):
+        if btn.is_btn_pressed(joy_msg):
+            self.get_logger().info(animation_name + " button pressed")
+            
+            msg = String()
+            msg.data = animation_name
+            self.animation_publisher.publish(msg)
 
 def main(args=None):
     rclpy.init(args=args)
