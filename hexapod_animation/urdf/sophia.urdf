@@ -1,0 +1,732 @@
+<?xml version="1.0" ?>
+<robot name="sophia_hexapod">
+  <material name="black">
+    <color rgba="0.1 0.1 0.1 1.0"/>
+  </material>
+  <material name="orange">
+    <color rgba="1.0 0.5 0.0 1.0"/>
+  </material>
+  <link name="base_footprint"/>
+  <joint name="base_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+  </joint>
+  <link name="base_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0.0"/>
+      <mass value="0.402"/>
+      <inertia ixx="0.0004631375" ixy="0.0" ixz="0.0" iyy="0.0004631375" iyz="0.0" izz="0.0007236"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <cylinder length="0.055" radius="0.06"/>
+      </geometry>
+      <!-- Centered at 0.015 means bottom is at -0.0125 and top at 0.0425 -->
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.015"/>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <cylinder length="0.055" radius="0.06"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0 0.0 0.015"/>
+    </collision>
+  </link>
+  <!-- Coxa Link -->
+  <link name="rf_coxa_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0175 0.0 0.0"/>
+      <mass value="0.006"/>
+      <inertia ixx="9e-07" ixy="0.0" ixz="0.0" iyy="1.0625000000000002e-06" iyz="0.0" izz="1.0625000000000002e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="0.035 0.03 0.03"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0175 0.0 0.0"/>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.035 0.03 0.03"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0175 0.0 0.0"/>
+    </collision>
+  </link>
+  <!-- Femur Link -->
+  <link name="rf_femur_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0225 0.0 0.0"/>
+      <mass value="0.033"/>
+      <inertia ixx="3.437500000000001e-06" ixy="0.0" ixz="0.0" iyy="7.287500000000001e-06" iyz="0.0" izz="7.287500000000001e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="0.045 0.025 0.025"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0225 0.0 0.0"/>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.045 0.025 0.025"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0225 0.0 0.0"/>
+    </collision>
+  </link>
+  <!-- Tibia Link -->
+  <link name="rf_tibia_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.045 0.0 0.0"/>
+      <mass value="0.009"/>
+      <inertia ixx="3.3749999999999995e-07" ixy="0.0" ixz="0.0" iyy="6.2437499999999985e-06" iyz="0.0" izz="6.2437499999999985e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="0.08249999999999999 0.015 0.015"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.041249999999999995 0.0 0.0"/>
+      <material name="black"/>
+    </visual>
+    <visual>
+      <geometry>
+        <sphere radius="0.0075"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.08249999999999999 0.0 0.0"/>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.08249999999999999 0.015 0.015"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.041249999999999995 0.0 0.0"/>
+    </collision>
+    <collision>
+      <geometry>
+        <sphere radius="0.0075"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.08249999999999999 0.0 0.0"/>
+    </collision>
+  </link>
+  <!-- Base Attachment to Dummy Motor Link -->
+  <joint name="rf_fixed_base_joint" type="fixed">
+    <origin rpy="0 0 1.0471975511965976" xyz="0.030000000000000006 0.05196152422706631 0.0"/>
+    <parent link="base_link"/>
+    <child link="rf_base_motor_link"/>
+  </joint>
+  <link name="rf_base_motor_link">
+    <!-- Minimal mass for fixed link attached to revolute joint root -->
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="0.000001" ixy="0.0" ixz="0.0" iyy="0.000001" iyz="0.0" izz="0.000001"/>
+    </inertial>
+  </link>
+  <!-- Coxa Joint -->
+  <joint name="rf_coxa_joint" type="revolute">
+    <axis xyz="0 0 1"/>
+    <limit effort="0.2" lower="-3.141592653589793" upper="3.141592653589793" velocity="11.6"/>
+    <parent link="rf_base_motor_link"/>
+    <child link="rf_coxa_link"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <dynamics armature="5.5e-06" damping="0.0" friction="0.0"/>
+  </joint>
+  <!-- Femur Joint -->
+  <joint name="rf_coxa_link_to_rf_femur_link" type="revolute">
+    <axis xyz="0 1 0"/>
+    <limit effort="0.2" lower="-3.141592653589793" upper="3.141592653589793" velocity="11.6"/>
+    <parent link="rf_coxa_link"/>
+    <child link="rf_femur_link"/>
+    <origin rpy="0 0 0" xyz="0.035 0 0"/>
+    <dynamics armature="5.5e-06" damping="0.0" friction="0.0"/>
+  </joint>
+  <!-- Tibia Joint -->
+  <joint name="rf_femur_link_to_rf_tibia_link" type="revolute">
+    <axis xyz="0 1 0"/>
+    <limit effort="0.2" lower="-3.141592653589793" upper="3.141592653589793" velocity="11.6"/>
+    <parent link="rf_femur_link"/>
+    <child link="rf_tibia_link"/>
+    <origin rpy="0 0 0" xyz="0.045 0 0"/>
+    <dynamics armature="5.5e-06" damping="0.0" friction="0.0"/>
+  </joint>
+  <!-- Coxa Link -->
+  <link name="rm_coxa_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0175 0.0 0.0"/>
+      <mass value="0.006"/>
+      <inertia ixx="9e-07" ixy="0.0" ixz="0.0" iyy="1.0625000000000002e-06" iyz="0.0" izz="1.0625000000000002e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="0.035 0.03 0.03"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0175 0.0 0.0"/>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.035 0.03 0.03"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0175 0.0 0.0"/>
+    </collision>
+  </link>
+  <!-- Femur Link -->
+  <link name="rm_femur_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0225 0.0 0.0"/>
+      <mass value="0.033"/>
+      <inertia ixx="3.437500000000001e-06" ixy="0.0" ixz="0.0" iyy="7.287500000000001e-06" iyz="0.0" izz="7.287500000000001e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="0.045 0.025 0.025"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0225 0.0 0.0"/>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.045 0.025 0.025"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0225 0.0 0.0"/>
+    </collision>
+  </link>
+  <!-- Tibia Link -->
+  <link name="rm_tibia_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.045 0.0 0.0"/>
+      <mass value="0.009"/>
+      <inertia ixx="3.3749999999999995e-07" ixy="0.0" ixz="0.0" iyy="6.2437499999999985e-06" iyz="0.0" izz="6.2437499999999985e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="0.08249999999999999 0.015 0.015"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.041249999999999995 0.0 0.0"/>
+      <material name="black"/>
+    </visual>
+    <visual>
+      <geometry>
+        <sphere radius="0.0075"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.08249999999999999 0.0 0.0"/>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.08249999999999999 0.015 0.015"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.041249999999999995 0.0 0.0"/>
+    </collision>
+    <collision>
+      <geometry>
+        <sphere radius="0.0075"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.08249999999999999 0.0 0.0"/>
+    </collision>
+  </link>
+  <!-- Base Attachment to Dummy Motor Link -->
+  <joint name="rm_fixed_base_joint" type="fixed">
+    <origin rpy="0 0 0.0" xyz="0.06 0.0 0.0"/>
+    <parent link="base_link"/>
+    <child link="rm_base_motor_link"/>
+  </joint>
+  <link name="rm_base_motor_link">
+    <!-- Minimal mass for fixed link attached to revolute joint root -->
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="0.000001" ixy="0.0" ixz="0.0" iyy="0.000001" iyz="0.0" izz="0.000001"/>
+    </inertial>
+  </link>
+  <!-- Coxa Joint -->
+  <joint name="rm_coxa_joint" type="revolute">
+    <axis xyz="0 0 1"/>
+    <limit effort="0.2" lower="-3.141592653589793" upper="3.141592653589793" velocity="11.6"/>
+    <parent link="rm_base_motor_link"/>
+    <child link="rm_coxa_link"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <dynamics armature="5.5e-06" damping="0.0" friction="0.0"/>
+  </joint>
+  <!-- Femur Joint -->
+  <joint name="rm_coxa_link_to_rm_femur_link" type="revolute">
+    <axis xyz="0 1 0"/>
+    <limit effort="0.2" lower="-3.141592653589793" upper="3.141592653589793" velocity="11.6"/>
+    <parent link="rm_coxa_link"/>
+    <child link="rm_femur_link"/>
+    <origin rpy="0 0 0" xyz="0.035 0 0"/>
+    <dynamics armature="5.5e-06" damping="0.0" friction="0.0"/>
+  </joint>
+  <!-- Tibia Joint -->
+  <joint name="rm_femur_link_to_rm_tibia_link" type="revolute">
+    <axis xyz="0 1 0"/>
+    <limit effort="0.2" lower="-3.141592653589793" upper="3.141592653589793" velocity="11.6"/>
+    <parent link="rm_femur_link"/>
+    <child link="rm_tibia_link"/>
+    <origin rpy="0 0 0" xyz="0.045 0 0"/>
+    <dynamics armature="5.5e-06" damping="0.0" friction="0.0"/>
+  </joint>
+  <!-- Coxa Link -->
+  <link name="rb_coxa_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0175 0.0 0.0"/>
+      <mass value="0.006"/>
+      <inertia ixx="9e-07" ixy="0.0" ixz="0.0" iyy="1.0625000000000002e-06" iyz="0.0" izz="1.0625000000000002e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="0.035 0.03 0.03"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0175 0.0 0.0"/>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.035 0.03 0.03"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0175 0.0 0.0"/>
+    </collision>
+  </link>
+  <!-- Femur Link -->
+  <link name="rb_femur_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0225 0.0 0.0"/>
+      <mass value="0.033"/>
+      <inertia ixx="3.437500000000001e-06" ixy="0.0" ixz="0.0" iyy="7.287500000000001e-06" iyz="0.0" izz="7.287500000000001e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="0.045 0.025 0.025"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0225 0.0 0.0"/>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.045 0.025 0.025"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0225 0.0 0.0"/>
+    </collision>
+  </link>
+  <!-- Tibia Link -->
+  <link name="rb_tibia_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.045 0.0 0.0"/>
+      <mass value="0.009"/>
+      <inertia ixx="3.3749999999999995e-07" ixy="0.0" ixz="0.0" iyy="6.2437499999999985e-06" iyz="0.0" izz="6.2437499999999985e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="0.08249999999999999 0.015 0.015"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.041249999999999995 0.0 0.0"/>
+      <material name="black"/>
+    </visual>
+    <visual>
+      <geometry>
+        <sphere radius="0.0075"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.08249999999999999 0.0 0.0"/>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.08249999999999999 0.015 0.015"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.041249999999999995 0.0 0.0"/>
+    </collision>
+    <collision>
+      <geometry>
+        <sphere radius="0.0075"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.08249999999999999 0.0 0.0"/>
+    </collision>
+  </link>
+  <!-- Base Attachment to Dummy Motor Link -->
+  <joint name="rb_fixed_base_joint" type="fixed">
+    <origin rpy="0 0 -1.0471975511965976" xyz="0.030000000000000006 -0.05196152422706631 0.0"/>
+    <parent link="base_link"/>
+    <child link="rb_base_motor_link"/>
+  </joint>
+  <link name="rb_base_motor_link">
+    <!-- Minimal mass for fixed link attached to revolute joint root -->
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="0.000001" ixy="0.0" ixz="0.0" iyy="0.000001" iyz="0.0" izz="0.000001"/>
+    </inertial>
+  </link>
+  <!-- Coxa Joint -->
+  <joint name="rb_coxa_joint" type="revolute">
+    <axis xyz="0 0 1"/>
+    <limit effort="0.2" lower="-3.141592653589793" upper="3.141592653589793" velocity="11.6"/>
+    <parent link="rb_base_motor_link"/>
+    <child link="rb_coxa_link"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <dynamics armature="5.5e-06" damping="0.0" friction="0.0"/>
+  </joint>
+  <!-- Femur Joint -->
+  <joint name="rb_coxa_link_to_rb_femur_link" type="revolute">
+    <axis xyz="0 1 0"/>
+    <limit effort="0.2" lower="-3.141592653589793" upper="3.141592653589793" velocity="11.6"/>
+    <parent link="rb_coxa_link"/>
+    <child link="rb_femur_link"/>
+    <origin rpy="0 0 0" xyz="0.035 0 0"/>
+    <dynamics armature="5.5e-06" damping="0.0" friction="0.0"/>
+  </joint>
+  <!-- Tibia Joint -->
+  <joint name="rb_femur_link_to_rb_tibia_link" type="revolute">
+    <axis xyz="0 1 0"/>
+    <limit effort="0.2" lower="-3.141592653589793" upper="3.141592653589793" velocity="11.6"/>
+    <parent link="rb_femur_link"/>
+    <child link="rb_tibia_link"/>
+    <origin rpy="0 0 0" xyz="0.045 0 0"/>
+    <dynamics armature="5.5e-06" damping="0.0" friction="0.0"/>
+  </joint>
+  <!-- Coxa Link -->
+  <link name="lf_coxa_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0175 0.0 0.0"/>
+      <mass value="0.006"/>
+      <inertia ixx="9e-07" ixy="0.0" ixz="0.0" iyy="1.0625000000000002e-06" iyz="0.0" izz="1.0625000000000002e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="0.035 0.03 0.03"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0175 0.0 0.0"/>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.035 0.03 0.03"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0175 0.0 0.0"/>
+    </collision>
+  </link>
+  <!-- Femur Link -->
+  <link name="lf_femur_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0225 0.0 0.0"/>
+      <mass value="0.033"/>
+      <inertia ixx="3.437500000000001e-06" ixy="0.0" ixz="0.0" iyy="7.287500000000001e-06" iyz="0.0" izz="7.287500000000001e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="0.045 0.025 0.025"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0225 0.0 0.0"/>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.045 0.025 0.025"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0225 0.0 0.0"/>
+    </collision>
+  </link>
+  <!-- Tibia Link -->
+  <link name="lf_tibia_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.045 0.0 0.0"/>
+      <mass value="0.009"/>
+      <inertia ixx="3.3749999999999995e-07" ixy="0.0" ixz="0.0" iyy="6.2437499999999985e-06" iyz="0.0" izz="6.2437499999999985e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="0.08249999999999999 0.015 0.015"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.041249999999999995 0.0 0.0"/>
+      <material name="black"/>
+    </visual>
+    <visual>
+      <geometry>
+        <sphere radius="0.0075"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.08249999999999999 0.0 0.0"/>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.08249999999999999 0.015 0.015"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.041249999999999995 0.0 0.0"/>
+    </collision>
+    <collision>
+      <geometry>
+        <sphere radius="0.0075"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.08249999999999999 0.0 0.0"/>
+    </collision>
+  </link>
+  <!-- Base Attachment to Dummy Motor Link -->
+  <joint name="lf_fixed_base_joint" type="fixed">
+    <origin rpy="0 0 2.0943951023931953" xyz="-0.029999999999999985 0.05196152422706632 0.0"/>
+    <parent link="base_link"/>
+    <child link="lf_base_motor_link"/>
+  </joint>
+  <link name="lf_base_motor_link">
+    <!-- Minimal mass for fixed link attached to revolute joint root -->
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="0.000001" ixy="0.0" ixz="0.0" iyy="0.000001" iyz="0.0" izz="0.000001"/>
+    </inertial>
+  </link>
+  <!-- Coxa Joint -->
+  <joint name="lf_coxa_joint" type="revolute">
+    <axis xyz="0 0 1"/>
+    <limit effort="0.2" lower="-3.141592653589793" upper="3.141592653589793" velocity="11.6"/>
+    <parent link="lf_base_motor_link"/>
+    <child link="lf_coxa_link"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <dynamics armature="5.5e-06" damping="0.0" friction="0.0"/>
+  </joint>
+  <!-- Femur Joint -->
+  <joint name="lf_coxa_link_to_lf_femur_link" type="revolute">
+    <axis xyz="0 1 0"/>
+    <limit effort="0.2" lower="-3.141592653589793" upper="3.141592653589793" velocity="11.6"/>
+    <parent link="lf_coxa_link"/>
+    <child link="lf_femur_link"/>
+    <origin rpy="0 0 0" xyz="0.035 0 0"/>
+    <dynamics armature="5.5e-06" damping="0.0" friction="0.0"/>
+  </joint>
+  <!-- Tibia Joint -->
+  <joint name="lf_femur_link_to_lf_tibia_link" type="revolute">
+    <axis xyz="0 1 0"/>
+    <limit effort="0.2" lower="-3.141592653589793" upper="3.141592653589793" velocity="11.6"/>
+    <parent link="lf_femur_link"/>
+    <child link="lf_tibia_link"/>
+    <origin rpy="0 0 0" xyz="0.045 0 0"/>
+    <dynamics armature="5.5e-06" damping="0.0" friction="0.0"/>
+  </joint>
+  <!-- Coxa Link -->
+  <link name="lm_coxa_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0175 0.0 0.0"/>
+      <mass value="0.006"/>
+      <inertia ixx="9e-07" ixy="0.0" ixz="0.0" iyy="1.0625000000000002e-06" iyz="0.0" izz="1.0625000000000002e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="0.035 0.03 0.03"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0175 0.0 0.0"/>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.035 0.03 0.03"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0175 0.0 0.0"/>
+    </collision>
+  </link>
+  <!-- Femur Link -->
+  <link name="lm_femur_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0225 0.0 0.0"/>
+      <mass value="0.033"/>
+      <inertia ixx="3.437500000000001e-06" ixy="0.0" ixz="0.0" iyy="7.287500000000001e-06" iyz="0.0" izz="7.287500000000001e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="0.045 0.025 0.025"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0225 0.0 0.0"/>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.045 0.025 0.025"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0225 0.0 0.0"/>
+    </collision>
+  </link>
+  <!-- Tibia Link -->
+  <link name="lm_tibia_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.045 0.0 0.0"/>
+      <mass value="0.009"/>
+      <inertia ixx="3.3749999999999995e-07" ixy="0.0" ixz="0.0" iyy="6.2437499999999985e-06" iyz="0.0" izz="6.2437499999999985e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="0.08249999999999999 0.015 0.015"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.041249999999999995 0.0 0.0"/>
+      <material name="black"/>
+    </visual>
+    <visual>
+      <geometry>
+        <sphere radius="0.0075"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.08249999999999999 0.0 0.0"/>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.08249999999999999 0.015 0.015"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.041249999999999995 0.0 0.0"/>
+    </collision>
+    <collision>
+      <geometry>
+        <sphere radius="0.0075"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.08249999999999999 0.0 0.0"/>
+    </collision>
+  </link>
+  <!-- Base Attachment to Dummy Motor Link -->
+  <joint name="lm_fixed_base_joint" type="fixed">
+    <origin rpy="0 0 3.141592653589793" xyz="-0.06 7.347880794884118e-18 0.0"/>
+    <parent link="base_link"/>
+    <child link="lm_base_motor_link"/>
+  </joint>
+  <link name="lm_base_motor_link">
+    <!-- Minimal mass for fixed link attached to revolute joint root -->
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="0.000001" ixy="0.0" ixz="0.0" iyy="0.000001" iyz="0.0" izz="0.000001"/>
+    </inertial>
+  </link>
+  <!-- Coxa Joint -->
+  <joint name="lm_coxa_joint" type="revolute">
+    <axis xyz="0 0 1"/>
+    <limit effort="0.2" lower="-3.141592653589793" upper="3.141592653589793" velocity="11.6"/>
+    <parent link="lm_base_motor_link"/>
+    <child link="lm_coxa_link"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <dynamics armature="5.5e-06" damping="0.0" friction="0.0"/>
+  </joint>
+  <!-- Femur Joint -->
+  <joint name="lm_coxa_link_to_lm_femur_link" type="revolute">
+    <axis xyz="0 1 0"/>
+    <limit effort="0.2" lower="-3.141592653589793" upper="3.141592653589793" velocity="11.6"/>
+    <parent link="lm_coxa_link"/>
+    <child link="lm_femur_link"/>
+    <origin rpy="0 0 0" xyz="0.035 0 0"/>
+    <dynamics armature="5.5e-06" damping="0.0" friction="0.0"/>
+  </joint>
+  <!-- Tibia Joint -->
+  <joint name="lm_femur_link_to_lm_tibia_link" type="revolute">
+    <axis xyz="0 1 0"/>
+    <limit effort="0.2" lower="-3.141592653589793" upper="3.141592653589793" velocity="11.6"/>
+    <parent link="lm_femur_link"/>
+    <child link="lm_tibia_link"/>
+    <origin rpy="0 0 0" xyz="0.045 0 0"/>
+    <dynamics armature="5.5e-06" damping="0.0" friction="0.0"/>
+  </joint>
+  <!-- Coxa Link -->
+  <link name="lb_coxa_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0175 0.0 0.0"/>
+      <mass value="0.006"/>
+      <inertia ixx="9e-07" ixy="0.0" ixz="0.0" iyy="1.0625000000000002e-06" iyz="0.0" izz="1.0625000000000002e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="0.035 0.03 0.03"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0175 0.0 0.0"/>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.035 0.03 0.03"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0175 0.0 0.0"/>
+    </collision>
+  </link>
+  <!-- Femur Link -->
+  <link name="lb_femur_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.0225 0.0 0.0"/>
+      <mass value="0.033"/>
+      <inertia ixx="3.437500000000001e-06" ixy="0.0" ixz="0.0" iyy="7.287500000000001e-06" iyz="0.0" izz="7.287500000000001e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="0.045 0.025 0.025"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0225 0.0 0.0"/>
+      <material name="orange"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.045 0.025 0.025"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.0225 0.0 0.0"/>
+    </collision>
+  </link>
+  <!-- Tibia Link -->
+  <link name="lb_tibia_link">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0.045 0.0 0.0"/>
+      <mass value="0.009"/>
+      <inertia ixx="3.3749999999999995e-07" ixy="0.0" ixz="0.0" iyy="6.2437499999999985e-06" iyz="0.0" izz="6.2437499999999985e-06"/>
+    </inertial>
+    <visual>
+      <geometry>
+        <box size="0.08249999999999999 0.015 0.015"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.041249999999999995 0.0 0.0"/>
+      <material name="black"/>
+    </visual>
+    <visual>
+      <geometry>
+        <sphere radius="0.0075"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.08249999999999999 0.0 0.0"/>
+      <material name="black"/>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.08249999999999999 0.015 0.015"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.041249999999999995 0.0 0.0"/>
+    </collision>
+    <collision>
+      <geometry>
+        <sphere radius="0.0075"/>
+      </geometry>
+      <origin rpy="0 0 0" xyz="0.08249999999999999 0.0 0.0"/>
+    </collision>
+  </link>
+  <!-- Base Attachment to Dummy Motor Link -->
+  <joint name="lb_fixed_base_joint" type="fixed">
+    <origin rpy="0 0 4.1887902047863905" xyz="-0.030000000000000027 -0.0519615242270663 0.0"/>
+    <parent link="base_link"/>
+    <child link="lb_base_motor_link"/>
+  </joint>
+  <link name="lb_base_motor_link">
+    <!-- Minimal mass for fixed link attached to revolute joint root -->
+    <inertial>
+      <mass value="0.001"/>
+      <inertia ixx="0.000001" ixy="0.0" ixz="0.0" iyy="0.000001" iyz="0.0" izz="0.000001"/>
+    </inertial>
+  </link>
+  <!-- Coxa Joint -->
+  <joint name="lb_coxa_joint" type="revolute">
+    <axis xyz="0 0 1"/>
+    <limit effort="0.2" lower="-3.141592653589793" upper="3.141592653589793" velocity="11.6"/>
+    <parent link="lb_base_motor_link"/>
+    <child link="lb_coxa_link"/>
+    <origin rpy="0 0 0" xyz="0 0 0"/>
+    <dynamics armature="5.5e-06" damping="0.0" friction="0.0"/>
+  </joint>
+  <!-- Femur Joint -->
+  <joint name="lb_coxa_link_to_lb_femur_link" type="revolute">
+    <axis xyz="0 1 0"/>
+    <limit effort="0.2" lower="-3.141592653589793" upper="3.141592653589793" velocity="11.6"/>
+    <parent link="lb_coxa_link"/>
+    <child link="lb_femur_link"/>
+    <origin rpy="0 0 0" xyz="0.035 0 0"/>
+    <dynamics armature="5.5e-06" damping="0.0" friction="0.0"/>
+  </joint>
+  <!-- Tibia Joint -->
+  <joint name="lb_femur_link_to_lb_tibia_link" type="revolute">
+    <axis xyz="0 1 0"/>
+    <limit effort="0.2" lower="-3.141592653589793" upper="3.141592653589793" velocity="11.6"/>
+    <parent link="lb_femur_link"/>
+    <child link="lb_tibia_link"/>
+    <origin rpy="0 0 0" xyz="0.045 0 0"/>
+    <dynamics armature="5.5e-06" damping="0.0" friction="0.0"/>
+  </joint>
+</robot>
